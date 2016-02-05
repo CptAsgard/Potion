@@ -28,6 +28,8 @@ namespace Potion
 
 		Matrix GetLocalToWorldMatrix();
 
+		Vector3 GetForward();
+
 	private:
 		void RecalculateMatrix();
 

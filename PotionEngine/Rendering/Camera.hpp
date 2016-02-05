@@ -13,6 +13,8 @@ namespace Potion
 	public:
 		Camera( float fovy, float aspectRatio, float zNear, float zFar );
 
+		void Update( float deltaTime );
+
 		void Render( Mesh& drawable );
 
 		Transform transform;
@@ -21,7 +23,8 @@ namespace Potion
 		// Get MVP from your Model matrix
 		const Matrix Camera::TransformModelMatrixToMVP( const Matrix& model );
 
-		Matrix m_matrix;
+		Matrix m_projectionMatrix;
+		Matrix m_viewMatrix;
 
 	};
 }
