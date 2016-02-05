@@ -31,7 +31,7 @@ namespace Potion
 		bool Running() { return gameIsRunning; }
 		void Quit() { gameIsRunning = false; }
 
-		const Window& GetWindow() const;
+		Window* StateManager::GetWindow();
 
 	private:
 		std::vector<GameState*> states;
@@ -41,6 +41,8 @@ namespace Potion
 		MessageBus* messageBus;
 
 		bool gameIsRunning;
+
+		float elapsedTime;
 
 	};
 }

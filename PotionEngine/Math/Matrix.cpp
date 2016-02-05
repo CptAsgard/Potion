@@ -38,7 +38,7 @@ namespace Potion
 		other.values = nullptr;
 	}
 
-	Vector3 Matrix::TransformVector( float x, float y, float z ) const
+	Vector3 Matrix::Translate( float x, float y, float z ) const
 	{
 		Vector3 retVal = Vector3();
 		retVal.X = values[ 0 ] * x + values[ 1 ] * y + values[ 2 ] * z + values[ 3 ];
@@ -47,12 +47,12 @@ namespace Potion
 		return retVal;
 	}
 
-	Vector3 Matrix::TransformVector( const Vector3& input ) const
+	Vector3 Matrix::Translate( const Vector3& input ) const
 	{
-		return TransformVector( input.X, input.Y, input.Z );
+		return Translate( input.X, input.Y, input.Z );
 	}
 
-	Vector2 Matrix::TransformVector( float x, float y ) const
+	Vector2 Matrix::Translate( float x, float y ) const
 	{
 		Vector2 retVal;
 		retVal.X = values[ 0 ] * x + values[ 1 ] * y + values[ 2 ];
@@ -60,9 +60,9 @@ namespace Potion
 		return retVal;
 	}
 
-	Vector2 Matrix::TransformVector( const Vector2& input ) const
+	Vector2 Matrix::Translate( const Vector2& input ) const
 	{
-		return TransformVector( input.X, input.Y );
+		return Translate( input.X, input.Y );
 	}
 
 	Matrix Matrix::Lerp( const Matrix& o, float timestep )
@@ -219,6 +219,16 @@ namespace Potion
 		return CreateTranslation( pos.X, pos.Y, pos.Z );
 	}
 
+	Vector3 Matrix::GetTranslation() const
+	{
+		return this->Translate( Vector3::Zero );
+	}
+
+	Vector3 Matrix::GetScale() const
+	{
+		return Vector3( values[ 0 ], values[ 5 ], values[ 10 ] );
+	}
+
 	Matrix Matrix::CreateLookAt( float eyex, float eyey, float eyez, float targetx, float targety, float targetz, float upx, float upy, float upz )
 	{
 		return CreateLookAt( Vector3( eyex, eyey, eyez ), Vector3( targetx, targety, targetz ), Vector3( upx, upy, upz ) );
@@ -264,20 +274,6 @@ namespace Potion
 		return retVal;
 	}
 
-	Matrix Matrix::CreateTRS( Vector3 pos, Vector3 rotation, Vector3 scale )
-	{
-		Matrix retVal;
-		// scale
-		retVal.SetScale( scale );
-
-		// pos
-		retVal.SetPosition( pos );
-
-		// rot
-		retVal.SetRotation( rotation );
-		return retVal;
-	}
-
 	Matrix Matrix::operator*( const Matrix& other ) const
 	{
 		Matrix retVal;
@@ -317,26 +313,5 @@ namespace Potion
 			values[ 8 ], values[ 9 ], values[ 10 ], values[ 11 ],
 			values[ 12 ], values[ 13 ], values[ 14 ], values[ 15 ]
 			);
-	}
-
-	void Matrix::SetPosition( const Vector3 & input )
-	{
-		values[ 3 ] = input.X;
-		values[ 7 ] = input.Y;
-		values[ 11 ] = input.Z;
-	}
-
-	void Matrix::SetRotation( const Vector3 & input )
-	{
-		*this *= Matrix::CreateRotationX( input.X );
-		*this *= Matrix::CreateRotationY( input.Y );
-		*this *= Matrix::CreateRotationZ( input.Z );
-	}
-
-	void Matrix::SetScale( const Vector3 & input )
-	{
-		values[ 0 ] = input.X;
-		values[ 5 ] = input.Y;
-		values[ 10 ] = input.Z;
 	}
 }

@@ -10,6 +10,11 @@
 
 #define POT_GET_TIME_MS ((float)(glfwGetTime() * 1000))
 
+#define POT_KEY_PRESS 1
+#define POT_KEY_HOLD 2
+#define POT_KEY_RELEASED 0
+#define POT_KEY_UP 3
+
 template<typename T>
 inline T DegToRad( T deg )
 {

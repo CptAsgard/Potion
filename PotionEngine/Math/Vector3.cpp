@@ -45,7 +45,7 @@ namespace Potion
 	Vector3 Vector3::GetRotated( const Vector3 &ang, const Vector3 &orgin ) const
 	{
 		Matrix rotmat = Matrix::CreateRotationZ( ang.X ) * Matrix::CreateRotationY( ang.Z ) * Matrix::CreateRotationX( ang.Y ) * Matrix::CreateTranslation( orgin );
-		return rotmat.TransformVector( *this );
+		return rotmat.Translate( *this );
 	}
 
 	Vector3 Vector3::Cross( const Vector3& other ) const

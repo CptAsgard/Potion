@@ -1,16 +1,27 @@
 #include "Window.hpp"
 
+#include "..\Util.hpp"
+
 namespace Potion
 {
+	Window* Window::m_currentWindow = nullptr;
 
 	void Window::OnKey( GLFWwindow* window, int key, int scancode, int action, int mods )
 	{
+		if( key < 0 || key > GLFW_KEY_LAST ) return; // filter out hardware that wants to be special and has special keys.
+		if( m_currentWindow == nullptr ) return;
 
+		if( action == GLFW_REPEAT ) return;
+
+		m_currentWindow->SetKeyState( key, action );
 	}
 
 	void Window::OnMouse( GLFWwindow* window, int button, int action, int mods )
 	{
+		if( button < 0 || button > GLFW_MOUSE_BUTTON_LAST ) return; // filter out hardware that wants to be special and has special keys.
+		if( m_currentWindow == nullptr ) return;
 
+		m_currentWindow->SetMouseState( button, action );
 	}
 
 	void Window::OnChar( GLFWwindow* window, unsigned int ch )
@@ -33,30 +44,147 @@ namespace Potion
 
 	}
 
+	Vector2 Window::GetMousePosition() const
+	{
+		double mouseX, mouseY;
+		glfwGetCursorPos( this->m_handle, &mouseX, &mouseY );
+
+		return Vector2( (float) mouseX, (float) mouseY );
+	}
+
+	void Window::SetMouse( int x, int y )
+	{
+	
+	}
+
+	void Window::SetMouse( const Vector2 & pos )
+	{
+	
+	}
+
+	void Window::ShouldCaptureMouse( bool capture )
+	{
+		if( capture )
+			glfwSetInputMode( this->m_handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED );
+		else
+			glfwSetInputMode( this->m_handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
+	}
+
+	void Window::SetKeyState( int key, int action )
+	{
+		this->m_keysIn[ key ] = action;
+	}
+
+	void Window::SetMouseState( int key, int action )
+	{
+		this->m_mouseIn[ key ] = action;
+	}
+
+	bool Window::GetKey( int key )
+	{
+		if( key < 0 || key > GLFW_KEY_LAST ) return false;
+		return this->m_keysIn[ key ] == POT_KEY_PRESS || this->m_keysIn[ key ] == POT_KEY_HOLD;
+	}
+
+	bool Window::GetKeyDown( int key )
+	{
+		if( key < 0 || key > GLFW_KEY_LAST ) return false;
+		return this->m_keysIn[ key ] == POT_KEY_PRESS;
+	}
+
+	bool Window::GetKeyUp( int key )
+	{
+		if( key < 0 || key > GLFW_KEY_LAST ) return false;
+		return this->m_keysIn[ key ] == POT_KEY_RELEASED;
+	}
+
 	void Window::SetCallbacks() const
 	{
-		glfwSetKeyCallback( this->Handle, this->OnKey );
-		glfwSetMouseButtonCallback( this->Handle, this->OnMouse );
-		glfwSetScrollCallback( this->Handle, this->OnScroll );
-		glfwSetCharCallback( this->Handle, this->OnChar );
-		glfwSetCursorPosCallback( this->Handle, this->OnMousePos );
-		glfwSetWindowFocusCallback( this->Handle, this->OnFocus );
+		glfwSetKeyCallback( this->m_handle, this->OnKey );
+		glfwSetMouseButtonCallback( this->m_handle, this->OnMouse );
+		glfwSetScrollCallback( this->m_handle, this->OnScroll );
+		glfwSetCharCallback( this->m_handle, this->OnChar );
+		glfwSetCursorPosCallback( this->m_handle, this->OnMousePos );
+		glfwSetWindowFocusCallback( this->m_handle, this->OnFocus );
+	}
+
+	void Window::UpdateKeyHolding()
+	{
+		for( int i = 0; i < GLFW_KEY_LAST; i++ ) {
+			if( this->m_keysIn[ i ] == POT_KEY_PRESS ) {
+				this->m_keysIn[ i ] = POT_KEY_HOLD;
+			}
+
+			if( this->m_keysIn[ i ] == POT_KEY_RELEASED ) {
+				this->m_keysIn[ i ] = POT_KEY_UP;
+			}
+		}
+
+		for( int i = 0; i < GLFW_MOUSE_BUTTON_LAST; i++ ) {
+			if( this->m_mouseIn[ i ] == POT_KEY_PRESS ) {
+				this->m_mouseIn[ i ] = POT_KEY_HOLD;
+			}
+
+			if( this->m_mouseIn[ i ] == POT_KEY_RELEASED ) {
+				this->m_mouseIn[ i ] = POT_KEY_UP;
+			}
+		}
 	}
 
 	Window::Window()
 	{
-		this->Handle = nullptr;
+		this->m_handle = nullptr;
+		
+		memset( this->m_keysIn, POT_KEY_UP, GLFW_KEY_LAST );
+		memset( this->m_mouseIn, POT_KEY_UP, GLFW_MOUSE_BUTTON_LAST );
+
+		if( this->m_currentWindow == nullptr ) {
+			this->m_currentWindow = this;
+		}
 	}
 
 	Window::~Window()
 	{
-		glfwDestroyWindow( this->Handle );
+		glfwDestroyWindow( this->m_handle );
 		glfwTerminate();
 	}
 
 	void error_callback( int error, const char* description )
 	{
 		printf( "GLFW error %d: '%s'\n", error, description );
+	}
+
+	void Window::SetTitle( std::string title )
+	{
+		glfwSetWindowTitle( this->m_handle, title.c_str() );
+	}
+
+	void Window::Close() const
+	{
+		glfwSetWindowShouldClose( this->m_handle, GL_TRUE );
+	}
+
+	bool Window::IsClosing() const
+	{
+		return (glfwWindowShouldClose( this->m_handle ) ? true : false);
+	}
+
+	Vector2 Window::GetSize() const
+	{
+		int x, y;
+
+		glfwGetWindowSize( this->m_handle, &x, &y );
+		return Vector2( x, y );
+	}
+
+	void Window::SwapBuffer() const
+	{
+		glfwSwapBuffers( this->m_handle );
+	}
+
+	void Window::PollEvents() const
+	{
+		glfwPollEvents();
 	}
 
 	bool Window::Create( const std::string& title, unsigned int width, unsigned int height )
@@ -77,14 +205,16 @@ namespace Potion
 
 		glfwSetErrorCallback( error_callback );
 
-		this->Handle = glfwCreateWindow( (int) width, (int) height, title.c_str(), nullptr, nullptr );
-		if( this->Handle == nullptr ) {
+		this->m_handle = glfwCreateWindow( (int) width, (int) height, title.c_str(), nullptr, nullptr );
+		if( this->m_handle == nullptr ) {
 			std::cout << "Failed to create GLFW window!\n";
 			glfwTerminate();
 			return false;
 		}
 
-		glfwMakeContextCurrent( this->Handle );
+		glfwMakeContextCurrent( this->m_handle );
+
+		this->SetCallbacks();
 
 		/****** END *******/
 
@@ -115,25 +245,4 @@ namespace Potion
 
 		return true;
 	}
-
-	void Window::Close() const
-	{
-		glfwSetWindowShouldClose( this->Handle, GL_TRUE );
-	}
-
-	bool Window::IsClosing() const
-	{
-		return (glfwWindowShouldClose( this->Handle ) ? true : false);
-	}
-
-	void Window::SwapBuffer() const
-	{
-		glfwSwapBuffers( this->Handle );
-	}
-
-	void Window::PollEvents() const
-	{
-		glfwPollEvents();
-	}
-
 }

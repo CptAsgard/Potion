@@ -20,7 +20,6 @@ namespace Potion
 		static Matrix CreateLookAt( float eyex, float eyey, float eyez, float targetx, float targety, float targetz, float upx, float upy, float upz );
 		static Matrix CreateLookAt( const Vector3& eyePos, const Vector3& targetPos, const Vector3& up );
 		static Matrix CreatePerspective( float fovy, float aspect, float zNear, float zFar );
-		static Matrix CreateTRS( Vector3 pos, Vector3 rotation, Vector3 scale );
 
 		~Matrix();
 		Matrix();
@@ -34,17 +33,14 @@ namespace Potion
 
 		void DebugPrint() const;
 
-		// Getting rotation and scale is nigh impossible.
-		// Look into Matrix Decomposition/Singular Value Decomposition
-		void SetPosition( const Vector3& input );
-		void SetRotation( const Vector3& input );
-		void SetScale( const Vector3& input );
+		Vector3 Translate( float x, float y, float z ) const;
+		Vector3 Translate( const Vector3& input ) const;
 
-		Vector3 TransformVector( float x, float y, float z ) const;
-		Vector3 TransformVector( const Vector3& input ) const;
+		Vector2 Translate( float x, float y ) const;
+		Vector2 Translate( const Vector2& input ) const;
 
-		Vector2 TransformVector( float x, float y ) const;
-		Vector2 TransformVector( const Vector2& input ) const;
+		Vector3 GetTranslation() const;
+		Vector3 GetScale() const;
 
 		Matrix Lerp( const Matrix& other, float timestep );
 		Matrix Inverted();

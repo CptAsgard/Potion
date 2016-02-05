@@ -98,7 +98,13 @@ namespace Potion
 	 */
 	void StateManager::Update()
 	{
-		states.back()->Update( this, 0 );
+		float currentTime = glfwGetTime();
+		float deltaTime = currentTime - elapsedTime;
+		elapsedTime = currentTime;
+
+		states.back()->Update( this, deltaTime );
+
+		windowPtr->UpdateKeyHolding();
 	}
 
 	/**
@@ -114,8 +120,8 @@ namespace Potion
 		windowPtr->SwapBuffer();
 	}
 
-	const Window& StateManager::GetWindow() const
+	Window* StateManager::GetWindow()
 	{
-		return *windowPtr;
+		return windowPtr;
 	}
 }

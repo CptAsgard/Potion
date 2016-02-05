@@ -24,9 +24,9 @@ namespace Potion
 		void SetScale( Vector3& scale );
 		Vector3 GetScale() const;
 
-		void SetWorldMatrix( Matrix m );
+		void LookAt( Vector3 target );
 
-		Matrix GetLocalToWorldMatrix() const;
+		Matrix GetLocalToWorldMatrix();
 
 	private:
 		void RecalculateMatrix();

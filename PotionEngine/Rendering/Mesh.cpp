@@ -88,8 +88,6 @@ namespace Potion
 
 	void Mesh::Draw( const Matrix& MVP )
 	{
-		MVP.DebugPrint();
-
 		GetMaterial()->GetShader()->SetUniform( std::string( "POT_MATRIX_MVP" ), MVP );
 
 		material->ActivateForDraw();

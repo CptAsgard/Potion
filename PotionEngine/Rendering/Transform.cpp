@@ -11,20 +11,18 @@ namespace Potion
 
 	void Transform::Translate( Vector3 & pos )
 	{
-		m_position += pos;
-		RecalculateMatrix();
+		//m_position += m_matrix.Translate( pos );
+		m_position += (m_matrix.Translate( pos ) - m_matrix.GetTranslation());
 	}
 
 	void Transform::Rotate( Vector3 & rot )
 	{
 		m_rotation += rot;
-		RecalculateMatrix();
 	}
 
 	void Transform::SetPosition( Vector3 & pos )
 	{
 		m_position = pos;
-		RecalculateMatrix();
 	}
 
 	Vector3 Transform::GetPosition() const
@@ -35,7 +33,6 @@ namespace Potion
 	void Transform::SetRotation( Vector3 & rot )
 	{
 		m_rotation = rot;
-		RecalculateMatrix();
 	}
 
 	Vector3 Transform::GetRotation() const
@@ -46,7 +43,6 @@ namespace Potion
 	void Transform::SetScale( Vector3 & scale )
 	{
 		m_scale = scale;
-		RecalculateMatrix();
 	}
 
 	Vector3 Transform::GetScale() const
@@ -54,18 +50,14 @@ namespace Potion
 		return m_scale;
 	}
 
-	void Transform::SetWorldMatrix( Matrix m )
+	Matrix Transform::GetLocalToWorldMatrix()
 	{
-		m_matrix = m;
-	}
-
-	Matrix Transform::GetLocalToWorldMatrix() const
-	{
+		RecalculateMatrix();
 		return m_matrix;
 	}
 
 	void Transform::RecalculateMatrix()
 	{
-		m_matrix = Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z ) * Matrix::CreateTranslation( m_position ) * Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X );
+		m_matrix = Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z ) * ( Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationX( m_rotation.X ) * Matrix::CreateRotationY( m_rotation.Y ) ) * Matrix::CreateTranslation( m_position );
 	}
 }
