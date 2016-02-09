@@ -110,7 +110,6 @@ namespace Potion
 	}
 
 	// Setting floats
-
 	void Shader::SetUniform( std::string name, float* values, int count )
 	{
 		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
@@ -124,7 +123,6 @@ namespace Potion
 	}
 
 	// Setting vectors
-
 	void Shader::SetUniform( std::string name, Vector2* vectors, int count )
 	{
 		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
@@ -149,19 +147,25 @@ namespace Potion
 		glUniform3fv( loc, 1, (GLfloat*) &vector );
 	}
 
+	void Shader::SetUniform( std::string name, Vector4* vectors, int count )
+	{
+		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
+		glUniform4fv( loc, count, (GLfloat*) vectors );
+	}
+
+	void Shader::SetUniform( std::string name, const Vector4& vector )
+	{
+		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
+		glUniform4fv( loc, 1, (GLfloat*) &vector );
+	}
+
 	void Shader::SetUniform( std::string name, const Matrix& matrix )
 	{
 		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
 		glUniformMatrix4fv( loc, 1, true, matrix.values );
 	}
 
-	void Shader::SetUniform( std::string name, const Texture & texture )
-	{
-
-	}
-
 	// Setting integers
-
 	void Shader::SetUniform( std::string name, int* values, int count )
 	{
 		int loc = glGetUniformLocation( this->programHandle, name.c_str() );

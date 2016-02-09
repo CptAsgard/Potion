@@ -9,7 +9,8 @@
 #include <GL\glew.h>
 
 #include "..\Math\Vector2.hpp"
-#include "..\Math\Vector2.hpp"
+#include "..\Math\Vector3.hpp"
+#include "..\Math\Vector4.hpp"
 #include "..\Math\Matrix.hpp"
 
 #include "Texture.hpp"
@@ -37,6 +38,8 @@ namespace Potion
 		void SetUniform( std::string name, const Vector2& vector );
 		void SetUniform( std::string name, Vector3* vectors, int iCount = 1 );
 		void SetUniform( std::string name, const Vector3& vector );
+		void SetUniform( std::string name, Vector4* vectors, int iCount = 1 );
+		void SetUniform( std::string name, const Vector4& vector );
 
 		// Setting floats
 		void SetUniform( std::string name, float* values, int iCount = 1 );
@@ -44,9 +47,6 @@ namespace Potion
 
 		// Setting 4x4 matrices
 		void SetUniform( std::string name, const Matrix& matrix );
-
-		// Setting textures
-		void SetUniform( std::string name, const Texture& texture );
 
 		// Setting integers
 		void SetUniform( std::string name, int* values, int iCount = 1 );
