@@ -5,6 +5,7 @@
 #include <map>
 
 #include "Shader.hpp"
+#include "Color.hpp"
 
 namespace Potion
 {
@@ -19,6 +20,9 @@ namespace Potion
 		Shader* const GetShader() const;
 
 		void SetTexture( const char* propertyName, Texture* t );
+
+		void SetColor( Color col );
+		Color GetColor() const;
 
 		void ActivateForDraw();
 
@@ -36,6 +40,8 @@ namespace Potion
 		std::vector<gltex_t> textures;
 
 		Shader* shader;
+
+		Color m_color;
 
 	};
 

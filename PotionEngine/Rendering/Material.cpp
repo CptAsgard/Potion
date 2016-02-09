@@ -62,6 +62,28 @@ namespace Potion
 		this->textures.push_back( gltex_t( propertyName, uniformLoc, t ) );
 	}
 
+	void Material::SetColor( Color col )
+	{
+		if( shader == nullptr ) {
+			printf( "No active shader! You can't set textures before assigning a shader.\n" );
+			return;
+		}
+
+		GLint uniformLoc = glGetUniformLocation( this->shader->GetProgramHandle(), "_Color" );
+
+		if( uniformLoc == -1 ) {
+			printf( "Couldn't find location of uniform '_Color' in current shader!\n" );
+			return;
+		}
+
+		this->m_color = col;
+	}
+
+	Color Material::GetColor() const
+	{
+		return this->m_color;
+	}
+
 	void Material::ActivateForDraw()
 	{
 		shader->Use();
