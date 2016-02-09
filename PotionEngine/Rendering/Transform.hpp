@@ -33,6 +33,8 @@ namespace Potion
 	private:
 		void RecalculateMatrix();
 
+		Matrix GetRotationMatrix();
+
 		Matrix m_matrix;
 
 		Vector3 m_position;

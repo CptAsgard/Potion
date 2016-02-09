@@ -15,8 +15,8 @@ namespace Potion
 
 	void Transform::Translate( Vector3 & pos )
 	{
-		//m_position += m_matrix.Translate( pos );
-		m_position += (m_matrix.Translate( pos ) - m_matrix.GetTranslation());
+		pos = GetRotationMatrix().Translate( pos );
+		m_position += pos;
 	}
 
 	void Transform::Rotate( Vector3 & rot )
@@ -56,7 +56,7 @@ namespace Potion
 
 	void Transform::LookAt( Vector3 target )
 	{
-		Vector3 lookDir = ( target - m_position ).Normalized();
+		Vector3 lookDir = (target - m_position).Normalized();
 
 		float lookLengthOnXZ = sqrtf( lookDir.Z*lookDir.Z + lookDir.X*lookDir.X );
 		float m_rotationX = -RadToDeg( atan2f( lookDir.Y, lookLengthOnXZ ) );
@@ -75,12 +75,15 @@ namespace Potion
 
 	Vector3 Transform::GetForward()
 	{
-		Matrix temp = (Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ));
-		return temp.Translate( Vector3( 0, 0, 1 ) );
+		return GetRotationMatrix().Translate( Vector3( 0, 0, 1 ) );
 	}
 
 	void Transform::RecalculateMatrix()
 	{
-		m_matrix = Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z ) * ( Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ) ) * Matrix::CreateTranslation( m_position );
+		m_matrix = Matrix::CreateTranslation( m_position ) * GetRotationMatrix() * Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z );
+	}
+	Matrix Transform::GetRotationMatrix()
+	{
+		return (Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ));
 	}
 }
