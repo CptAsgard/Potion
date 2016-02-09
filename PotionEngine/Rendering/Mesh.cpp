@@ -10,7 +10,6 @@
 
 namespace Potion
 {
-
 	Mesh::Mesh( Material* m )
 	{
 		if( m == nullptr ) {
@@ -75,18 +74,22 @@ namespace Potion
 		glEnableVertexAttribArray( posAttrib );
 		glVertexAttribPointer( posAttrib, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex ), (void*) offsetof( Vertex, position ) );
 
-		GLint colorAttrib = glGetAttribLocation( material->GetShader()->GetProgramHandle(), "vertexColor" );
+		GLint colorAttrib = glGetAttribLocation( material->GetShader()->GetProgramHandle(), "color" );
 		glEnableVertexAttribArray( colorAttrib );
 		glVertexAttribPointer( colorAttrib, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex ), (void*) offsetof( Vertex, color ) );
 
-		GLint uvAttrib = glGetAttribLocation( material->GetShader()->GetProgramHandle(), "texCoord" );
+		GLint uvAttrib = glGetAttribLocation( material->GetShader()->GetProgramHandle(), "uv" );
 		glEnableVertexAttribArray( uvAttrib );
 		glVertexAttribPointer( uvAttrib, 2, GL_FLOAT, GL_FALSE, sizeof( Vertex ), (void*) offsetof( Vertex, UV ) );
+
+		GLint normalAttrib = glGetAttribLocation( material->GetShader()->GetProgramHandle(), "normal" );
+		glEnableVertexAttribArray( normalAttrib );
+		glVertexAttribPointer( normalAttrib, 3, GL_FLOAT, GL_FALSE, sizeof( Vertex ), (void*) offsetof( Vertex, normal ) );
 
 		glBindVertexArray( 0 );
 	}
 
-	void Mesh::Draw( const Matrix& MVP )
+	void Mesh::GLDraw( const Matrix& MVP )
 	{
 		GetMaterial()->GetShader()->SetUniform( std::string( "POT_MATRIX_MVP" ), MVP );
 
@@ -95,11 +98,9 @@ namespace Potion
 		glBindVertexArray( this->vao );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, this->ebo );
 
-		//glDrawElements( GL_TRIANGLES, this->indicesCount, GL_UNSIGNED_INT, 0 );
-		glDrawArrays( GL_TRIANGLES, 0, 36 );
+		glDrawElements( GL_TRIANGLES, this->indicesCount, GL_UNSIGNED_INT, 0 );
 
 		glBindVertexArray( 0 );
 		glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
 	}
-
 }

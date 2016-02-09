@@ -6,7 +6,6 @@
 #include "Shader.hpp"
 #include "Texture.hpp"
 #include "Material.hpp"
-#include "Transform.hpp"
 
 #include "..\Math\Vector2.hpp"
 #include "..\Math\Vector3.hpp"
@@ -18,11 +17,11 @@ namespace Potion
 	struct Vertex
 	{
 		Vertex() {}
-		Vertex( Vector3 pos, Vector2 uv, Vector3 color = Vector3( 0, 0, 0 ) ) : position( pos ), color( color ), UV( uv )
-		{ }
+		Vertex( Vector3 pos, Vector2 uv, Vector3 normal, Vector3 color = Vector3( 1, 0, 1 ) ) : position( pos ), color( color ), normal( normal ), UV( uv ) {}
 
 		Vector3 position;
 		Vector3 color;
+		Vector3 normal;
 		Vector2 UV;
 	};
 
@@ -40,9 +39,7 @@ namespace Potion
 		void SetMaterial( Material* m );
 		Material* const GetMaterial();
 
-		void Mesh::Draw( const Matrix& MVP );
-
-		Transform transform;
+		void Mesh::GLDraw( const Matrix& MVP );
 
 	private:
 		void SetGL();
