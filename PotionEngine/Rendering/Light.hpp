@@ -4,21 +4,32 @@
 #include "Color.hpp"
 #include "Transform.hpp"
 
-#include "..\World\GameObject.hpp"
+#include "..\World\Entity.hpp"
 
 namespace Potion
 {
-	class Light : public GameObject
+	class Light : public Entity
 	{
 	public:
 		Light();
 
 		void SetIntensity( float intensity );
+
 		void SetColor( Color& color );
 
+		void SetAttenuation( float attenuation );
+
+		void SetAmbientValue( float ambient );
+
+		void SetConeAngle( float angle );
+
 	private:
-		float m_intensity;
 		Color m_color;
+
+		float m_intensity;
+		float m_attenuation;
+		float m_ambient;
+		float m_coneAngle;
 
 	};
 }

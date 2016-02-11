@@ -113,6 +113,7 @@ namespace Potion
 	void StateManager::Draw()
 	{
 		// clear
+		// TODO: Move clear behaviour to Camera
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		states.back()->Draw( this );

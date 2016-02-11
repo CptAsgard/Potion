@@ -31,12 +31,15 @@
     <ClCompile Include="Rendering\Light.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
+    <ClCompile Include="Systems\RenderSystem.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\Transform.cpp" />
     <ClCompile Include="Rendering\Window.cpp" />
     <ClCompile Include="State\StateManager.cpp" />
-    <ClCompile Include="World\GameObject.cpp" />
+    <ClCompile Include="World\Entity.cpp" />
+    <ClCompile Include="Systems\EntitySystem.cpp" />
+    <ClCompile Include="World\MeshEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Events\MessageBus.hpp" />
@@ -52,6 +55,7 @@
     <ClInclude Include="Rendering\Light.hpp" />
     <ClInclude Include="Rendering\Material.hpp" />
     <ClInclude Include="Rendering\Mesh.hpp" />
+    <ClInclude Include="Systems\RenderSystem.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Transform.hpp" />
@@ -60,7 +64,9 @@
     <ClInclude Include="State\StateManager.hpp" />
     <ClInclude Include="State\StateMessages.hpp" />
     <ClInclude Include="Util.hpp" />
-    <ClInclude Include="World\GameObject.hpp" />
+    <ClInclude Include="World\Entity.hpp" />
+    <ClInclude Include="Systems\EntitySystem.hpp" />
+    <ClInclude Include="World\MeshEntity.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Events\MessageBus.inl" />
@@ -130,6 +136,13 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>C:\Users\ExisTy\Dropbox\OpenGL\lib\glew\Release\Win32;C:\Users\ExisTy\Dropbox\OpenGL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

@@ -2,12 +2,12 @@
 
 namespace Potion
 {
-	Light::Light() : GameObject()
+	Light::Light() : Entity()
 	{
-		mesh.GetMaterial()->SetShader( new Shader() );
-		mesh.GetMaterial()->GetShader()->Attach( "../Resources/Shaders/lightObject.frag", GL_FRAGMENT_SHADER );
-		mesh.GetMaterial()->GetShader()->Attach( "../Resources/Shaders/lightObject.vert", GL_VERTEX_SHADER );
-		mesh.GetMaterial()->GetShader()->Link();
+		//GetMesh->GetMaterial()->SetShader( new Shader() );
+		//GetMesh->GetMaterial()->GetShader()->Attach( "../Resources/Shaders/lightEntity.frag", GL_FRAGMENT_SHADER );
+		//GetMesh->GetMaterial()->GetShader()->Attach( "../Resources/Shaders/lightEntity.vert", GL_VERTEX_SHADER );
+		//GetMesh->GetMaterial()->GetShader()->Link();
 	}
 
 	void Light::SetIntensity( float intensity )
