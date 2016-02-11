@@ -9,9 +9,9 @@ namespace Potion
 		m_projectionMatrix = Matrix::CreatePerspective( DegToRad(fovy), aspectRatio, zNear, zFar );
 	}
 
-	void Camera::Render( GameObject & drawable )
+	void Camera::Render( MeshEntity & MeshEntity )
 	{
-		drawable.Draw( this );
+		MeshEntity.Render( this );
 	}
 
 	const Matrix Camera::TransformModelMatrixToMVP( const Matrix & model )

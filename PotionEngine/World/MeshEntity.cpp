@@ -1,13 +1,11 @@
-#include "GameObject.hpp"
+#include "MeshEntity.hpp"
 
 namespace Potion
 {
-	GameObject::GameObject()
-	{}
-
-	GameObject* GameObject::CreatePrimitive( PrimitiveType type )
+	MeshEntity* MeshEntity::CreatePrimitive( PrimitiveType type )
 	{
-		GameObject* go = new GameObject();
+		MeshEntity* go = new MeshEntity();
+		go->SetMesh( new Mesh() );
 
 		Vertex verts[] = {
 			Vertex( Vector3( -1.0f, -1.0f, 1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 0.f, 0.f, 1.0f ) ),
@@ -56,18 +54,41 @@ namespace Potion
 			23, 22, 21, 21, 20, 23
 		};
 
-		go->mesh.ApplyVertices( verts, 24 );
-		go->mesh.ApplyIndices( indices, 36 );
+		go->GetMesh()->ApplyVertices( verts, 24 );
+		go->GetMesh()->ApplyIndices( indices, 36 );
 
 		return go;
 	}
 
-	void GameObject::Draw( Camera* cam )
+	void MeshEntity::Render( Camera* cam )
 	{
-		mesh.GetMaterial()->GetShader()->SetUniform( std::string( "_Object2World" ), transform.GetLocalToWorldMatrix() );
-		mesh.GetMaterial()->GetShader()->SetUniform( std::string( "_Normal2World" ), transform.GetLocalToWorldMatrix().Inverted().Mirror() );
+		GetMesh()->GetMaterial()->GetShader()->SetUniform( std::string( "_MeshEntity2World" ), GetTransform().GetLocalToWorldMatrix() );
+		GetMesh()->GetMaterial()->GetShader()->SetUniform( std::string( "_Normal2World" ), GetTransform().GetLocalToWorldMatrix().Inverted().Mirror() );
 
 		// foreach attached mesh
-		mesh.GLDraw( cam->TransformModelMatrixToMVP( transform.GetLocalToWorldMatrix() ) );
+		GetMesh()->GLDraw( cam->TransformModelMatrixToMVP( GetTransform().GetLocalToWorldMatrix() ) );
+	}
+
+	void MeshEntity::SetMesh( Mesh * mesh )
+	{
+		this->m_mesh = *mesh;
+	}
+
+	Mesh * MeshEntity::GetMesh()
+	{
+		return &m_mesh;
+	}
+
+	void MeshEntity::SetLayer( int layer )
+	{
+		// layer 0 .. 31
+		POT_ASSERT( layer <= 31 );
+
+		this->m_layer = layer;
+	}
+
+	int MeshEntity::GetLayer() const
+	{
+		return m_layer;
 	}
 }
