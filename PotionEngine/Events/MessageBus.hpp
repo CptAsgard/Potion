@@ -9,6 +9,8 @@
 #include <unordered_map>
 #include <typeindex>
 
+#include <thread>
+
 /**
  * @author	Zagabar
  */
@@ -53,6 +55,8 @@ namespace Potion
 	}
 
 #include "MessageBus.inl"
+
+	extern thread_local MessageBus Event;
 }
 
 #endif // _MESSAGEBUS_H

@@ -2,6 +2,8 @@
 
 namespace Potion
 {
+	thread_local MessageBus Event = MessageBus();
+
 	bool MessageBus::SubscriptionExists( std::type_index id, MessageReceiverBase* receiver )
 	{
 		const auto listIterator = subscribers.find( id );
