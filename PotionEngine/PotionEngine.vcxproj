@@ -26,20 +26,18 @@
     <ClCompile Include="Math\Vector2.cpp" />
     <ClCompile Include="Math\Vector3.cpp" />
     <ClCompile Include="Math\Vector4.cpp" />
-    <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="World\Camera.cpp" />
     <ClCompile Include="Rendering\Color.cpp" />
-    <ClCompile Include="Rendering\Light.cpp" />
+    <ClCompile Include="World\Light.cpp" />
     <ClCompile Include="Rendering\Material.cpp" />
     <ClCompile Include="Rendering\Mesh.cpp" />
-    <ClCompile Include="Systems\RenderSystem.cpp" />
+    <ClCompile Include="Systems\SceneGraph.cpp" />
     <ClCompile Include="Rendering\Shader.cpp" />
     <ClCompile Include="Rendering\Texture.cpp" />
     <ClCompile Include="Rendering\Transform.cpp" />
     <ClCompile Include="Rendering\Window.cpp" />
     <ClCompile Include="State\StateManager.cpp" />
-    <ClCompile Include="World\Entity.cpp" />
-    <ClCompile Include="Systems\EntitySystem.cpp" />
-    <ClCompile Include="World\MeshEntity.cpp" />
+    <ClCompile Include="World\GameObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Events\MessageBus.hpp" />
@@ -50,12 +48,12 @@
     <ClInclude Include="Math\Vector2.hpp" />
     <ClInclude Include="Math\Vector3.hpp" />
     <ClInclude Include="Math\Vector4.hpp" />
-    <ClInclude Include="Rendering\Camera.hpp" />
+    <ClInclude Include="World\Camera.hpp" />
     <ClInclude Include="Rendering\Color.hpp" />
-    <ClInclude Include="Rendering\Light.hpp" />
+    <ClInclude Include="World\Light.hpp" />
     <ClInclude Include="Rendering\Material.hpp" />
     <ClInclude Include="Rendering\Mesh.hpp" />
-    <ClInclude Include="Systems\RenderSystem.hpp" />
+    <ClInclude Include="Systems\SceneGraph.hpp" />
     <ClInclude Include="Rendering\Shader.hpp" />
     <ClInclude Include="Rendering\Texture.hpp" />
     <ClInclude Include="Rendering\Transform.hpp" />
@@ -64,9 +62,7 @@
     <ClInclude Include="State\StateManager.hpp" />
     <ClInclude Include="State\StateMessages.hpp" />
     <ClInclude Include="Util.hpp" />
-    <ClInclude Include="World\Entity.hpp" />
-    <ClInclude Include="Systems\EntitySystem.hpp" />
-    <ClInclude Include="World\MeshEntity.hpp" />
+    <ClInclude Include="World\GameObject.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Events\MessageBus.inl" />
@@ -92,7 +88,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -149,6 +145,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\ExisTy\Dropbox\OpenGL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
