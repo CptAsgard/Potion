@@ -45,6 +45,11 @@ namespace Potion
 		return shader;
 	}
 
+	void Material::SetMainTexture( Texture * t )
+	{
+		SetTexture( "_MainTex", t );
+	}
+
 	void Material::SetTexture( const char* propertyName, Texture* t )
 	{
 		if( shader == nullptr ) {

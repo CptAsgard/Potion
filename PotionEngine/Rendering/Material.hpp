@@ -19,6 +19,7 @@ namespace Potion
 		void SetShader( Shader* s );
 		Shader* const GetShader() const;
 
+		void SetMainTexture( Texture* t );
 		void SetTexture( const char* propertyName, Texture* t );
 
 		void SetColor( Color col );
