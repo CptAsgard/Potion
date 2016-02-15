@@ -34,6 +34,63 @@ namespace Potion
 		glDeleteBuffers( 1, &this->ebo );
 	}
 
+	Mesh* Mesh::CreatePrimitive( PrimitiveType type )
+	{
+		Mesh* mesh = new Mesh();
+
+		Vertex verts[] = {
+			Vertex( Vector3( -1.0f, -1.0f, 1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 0.f, 0.f, 1.0f ) ),
+			Vertex( Vector3( 1.0f, -1.0f, 1.0f ), Vector2( 1.0f, 1.0f ), Vector3( 0.f, 0.f, 1.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, 1.0f ), Vector2( 1.0f, 0.0f ), Vector3( 0.f, 0.f, 1.0f ) ),
+			Vertex( Vector3( -1.0f, 1.0f, 1.0f ), Vector2( 0.0f, 0.0f ), Vector3( 0.f, 0.f, 1.0f ) ),
+
+			Vertex( Vector3( 1.0f, -1.0f, 1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, -1.0f, -1.0f ), Vector2( 1.0f, 1.0f ), Vector3( 1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, -1.0f ), Vector2( 1.0f, 0.0f ), Vector3( 1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, 1.0f ), Vector2( 0.0f, 0.0f ), Vector3( 1.0f, 0.0f, 0.0f ) ),
+
+			Vertex( Vector3( 1.0f, -1.0f, -1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 0.0f, 0.0f, -1.0f ) ),
+			Vertex( Vector3( -1.0f, -1.0f, -1.0f ), Vector2( 1.0f, 1.0f ), Vector3( 0.0f, 0.0f, -1.0f ) ),
+			Vertex( Vector3( -1.0f, 1.0f, -1.0f ), Vector2( 1.0f, 0.0f ), Vector3( 0.0f, 0.0f, -1.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, -1.0f ), Vector2( 0.0f, 0.0f ), Vector3( 0.0f, 0.0f, -1.0f ) ),
+
+			Vertex( Vector3( -1.0f, -1.0f, -1.0f ), Vector2( 0.0f, 1.0f ), Vector3( -1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, -1.0f, 1.0f ), Vector2( 1.0f, 1.0f ), Vector3( -1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, 1.0f, 1.0f ), Vector2( 1.0f, 0.0f ), Vector3( -1.0f, 0.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, 1.0f, -1.0f ), Vector2( 0.0f, 0.0f ), Vector3( -1.0f, 0.0f, 0.0f ) ),
+
+			Vertex( Vector3( -1.0f, 1.0f, 1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 0.0f, 1.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, 1.0f ), Vector2( 1.0f, 1.0f ), Vector3( 0.0f, 1.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, 1.0f, -1.0f ), Vector2( 1.0f, 0.0f ), Vector3( 0.0f, 1.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, 1.0f, -1.0f ), Vector2( 0.0f, 0.0f ), Vector3( 0.0f, 1.0f, 0.0f ) ),
+
+			Vertex( Vector3( 1.0f, -1.0f, 1.0f ), Vector2( 0.0f, 1.0f ), Vector3( 0.0f, -1.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, -1.0f, 1.0f ), Vector2( 1.0f, 1.0f ), Vector3( 0.0f, -1.0f, 0.0f ) ),
+			Vertex( Vector3( -1.0f, -1.0f, -1.0f ), Vector2( 1.0f, 0.0f ), Vector3( 0.0f, -1.0f, 0.0f ) ),
+			Vertex( Vector3( 1.0f, -1.0f, -1.0f ), Vector2( 0.0f, 0.0f ), Vector3( 0.0f, -1.0f, 0.0f ) )
+		};
+
+		GLuint indices[] = {
+			// Font face
+			0, 1, 2, 2, 3, 0,
+			// Right face
+			7, 6, 5, 5, 4, 7,
+			// Back face
+			11, 10, 9, 9, 8, 11,
+			// Left face
+			15, 14, 13, 13, 12, 15,
+			// Top Face	
+			19, 18, 17, 17, 16, 19,
+			// Bottom Face
+			23, 22, 21, 21, 20, 23
+		};
+
+		mesh->ApplyVertices( verts, 24 );
+		mesh->ApplyIndices( indices, 36 );
+
+		return mesh;
+	}
+
 	void Mesh::ApplyVertices( Vertex* vertices, unsigned int count )
 	{
 		this->vertexCount = count;
@@ -57,7 +114,7 @@ namespace Potion
 		SetGL();
 	}
 
-	Material* const Mesh::GetMaterial()
+	Material* Mesh::GetMaterial()
 	{
 		return this->material;
 	}

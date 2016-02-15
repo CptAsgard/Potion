@@ -13,6 +13,15 @@
 
 namespace Potion
 {
+	enum PrimitiveType
+	{
+		//SPHERE,
+		//CAPSULE,
+		//CYLINDER,
+		CUBE,
+		//PLANE,
+		//QUAD
+	};
 
 	struct Vertex
 	{
@@ -32,12 +41,14 @@ namespace Potion
 		Mesh( Material* m = nullptr );
 		~Mesh();
 
+		static Mesh* CreatePrimitive( PrimitiveType type );
+
 		void ApplyVertices( Vertex* vertices, unsigned int count );
 
 		void ApplyIndices( GLuint* indices, unsigned int count );
 
 		void SetMaterial( Material* m );
-		Material* const GetMaterial();
+		Material* GetMaterial();
 
 		void Mesh::GLDraw( const Matrix& MVP );
 
