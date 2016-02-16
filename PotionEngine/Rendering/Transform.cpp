@@ -16,6 +16,7 @@ namespace Potion
 	void Transform::Translate( Vector3 & pos )
 	{
 		pos = GetRotationMatrix().Translate( pos );
+
 		m_position += pos;
 	}
 
@@ -34,14 +35,30 @@ namespace Potion
 		return m_position;
 	}
 
-	void Transform::SetRotation( Vector3 & rot )
+	Vector3 Transform::GetWorldPosition() const
+	{
+		if( m_parent )
+			return m_parent->GetWorldPosition() + m_position;
+		else
+			return m_position;
+	}
+
+	void Transform::SetRotation( const Vector3 & rot )
 	{
 		m_rotation = rot;
 	}
 
 	Vector3 Transform::GetRotation() const
 	{
-		return m_rotation;
+		if( m_parent )
+			return m_parent->GetWorldRotation() + m_rotation;
+		else
+			return m_rotation;
+	}
+
+	Vector3 Transform::GetWorldRotation() const
+	{
+		return Vector3();
 	}
 
 	void Transform::SetScale( Vector3 & scale )
@@ -54,9 +71,17 @@ namespace Potion
 		return m_scale;
 	}
 
+	Vector3 Transform::GetWorldScale() const
+	{
+		if( m_parent )
+			return m_parent->GetWorldScale() + m_scale;
+		else
+			return m_scale;
+	}
+
 	void Transform::LookAt( Vector3 target )
 	{
-		Vector3 lookDir = (target - m_position).Normalized();
+		Vector3 lookDir = ( target - m_position ).Normalized();
 
 		float lookLengthOnXZ = sqrtf( lookDir.Z*lookDir.Z + lookDir.X*lookDir.X );
 		float m_rotationX = -RadToDeg( atan2f( lookDir.Y, lookLengthOnXZ ) );
@@ -80,10 +105,60 @@ namespace Potion
 
 	void Transform::RecalculateMatrix()
 	{
-		m_matrix = Matrix::CreateTranslation( m_position ) * GetRotationMatrix() * Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z );
+		m_matrix = Matrix::CreateTranslation( GetWorldPosition() ) * GetRotationMatrix() * Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z );
 	}
+
 	Matrix Transform::GetRotationMatrix()
 	{
-		return (Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ));
+		return ( Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ) );
+	}
+
+	void Transform::AddChild( Transform * obj )
+	{
+		m_children.push_back( obj );
+	}
+
+	void Transform::RemoveChild( Transform * obj )
+	{
+		if( m_children.size() < 1 )
+			return;
+
+		auto it = std::remove( m_children.begin(), m_children.end(), obj );
+
+		if( it != m_children.end() )
+			m_children.erase( it, m_children.end() );
+	}
+
+	Transform * Transform::GetChild( int index )
+	{
+		POT_ASSERT( index < m_children.size() );
+		POT_ASSERT( index > 0 );
+
+		return m_children[ index ];
+	}
+
+	unsigned int Transform::GetChildCount() const
+	{
+		return m_children.size();
+	}
+
+	void Transform::SetParent( Transform * newParent )
+	{
+		if( m_parent )
+			m_parent->RemoveChild( this );
+
+		if( newParent )
+		{
+			newParent->AddChild( this );
+		}
+
+		SetPosition( GetWorldPosition() - newParent->GetWorldPosition() );
+
+		m_parent = newParent;
+	}
+
+	Transform * Transform::GetParent()
+	{
+		return m_parent;
 	}
 }

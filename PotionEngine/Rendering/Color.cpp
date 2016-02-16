@@ -16,6 +16,16 @@ namespace Potion
 	Color::Color( unsigned char r, unsigned char g, unsigned char b, unsigned char a ) : R( r ), G( g ), B( b ), A( a ) {}
 	Color::Color( unsigned int hex ) : R( ((unsigned char*) &hex)[ 0 ] ), G( ((unsigned char*) &hex)[ 1 ] ), B( ((unsigned char*) &hex)[ 2 ] ), A( ((unsigned char*) &hex)[ 3 ] ) {}
 
+	Vector4 Color::AsRGBA() const
+	{
+		return Vector4( R / 255.f, G / 255.f, B / 255.f, A / 255.f );
+	}
+
+	Vector3 Color::AsRGB() const
+	{
+		return Vector3( R / 255.f, G / 255.f, B / 255.f );
+	}
+
 	Color Color::Lerp( const Color& o, float timestep )
 	{
 		int r = (int) (this->R + (o.R - this->R) * timestep);

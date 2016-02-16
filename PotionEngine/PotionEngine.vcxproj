@@ -60,7 +60,6 @@
     <ClInclude Include="Rendering\Window.hpp" />
     <ClInclude Include="State\GameState.hpp" />
     <ClInclude Include="State\StateManager.hpp" />
-    <ClInclude Include="State\StateMessages.hpp" />
     <ClInclude Include="Util.hpp" />
     <ClInclude Include="World\GameObject.hpp" />
   </ItemGroup>

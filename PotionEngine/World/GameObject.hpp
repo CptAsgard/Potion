@@ -32,13 +32,6 @@ namespace Potion
 		GameObject();
 		virtual ~GameObject() {}
 
-		void AddChild( GameObject* child );
-		void RemoveChild( const GameObjectID& id );
-		GameObject* GetChild( const GameObjectID& id );
-
-		void SetParent( GameObject* parent );
-		GameObject* GetParent();
-
 		void SetActive( bool active );
 		bool IsActive() const;
 
@@ -58,9 +51,6 @@ namespace Potion
 		Transform m_transform;
 
 		GameObjectID m_id;
-
-		std::unordered_map< GameObjectID, GameObject* > m_children;
-		GameObject* m_parent;
 
 		bool m_isActive;
 

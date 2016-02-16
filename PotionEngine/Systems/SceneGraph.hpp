@@ -11,32 +11,36 @@
 #include "..\World\Light.hpp"
 #include "..\World\Camera.hpp"
 
-
 namespace Potion
 {
 	class GameObject;
 
 	class SceneGraph : 	MessageReceiver< LightCreatedMessage, LightDestroyedMessage,
-		                                 CameraCreatedMessage, CameraDestroyedMessage >
+										 CameraCreatedMessage, CameraDestroyedMessage >
 	{
 
 	public:
 		SceneGraph();
 		virtual ~SceneGraph();
 
-		void DrawAll();
+		void SetAmbientColor( const Color &color );
 
-		void SetAmbientLight( const Color &color );
+		// Should be [0 .. 1]. 
+		void SetAmbientIntensity( float intensity );
+
+		// Call to start drawing process
+		virtual void DrawAll();
 
 		/**
-		 * Claims ownership of ptr. SceneGraph is responsible for managing the lifetime. Also gives the GameObject an unique ID.
-		 * Attaches the GameObject to the root of the scene.
+		 * Claims ownership of ptr. SceneGraph is responsible for managing the lifetime of the GO. 
+		 * Gives the GameObject a new unique ID.
+		 * Also attaches the GameObject to the root of the scene, if it doesn't have a root obj yet.
 		 *
 		 * @param GO The gameObject to add to this scene
 		 */
 		void AttachToScene( GameObject* GO );
 
-		virtual GameObject* GetRoot();
+		virtual Transform* GetRoot();
 
 		virtual GameObject* FindGameObject( GameObjectID entity ) const;
 
@@ -49,18 +53,27 @@ namespace Potion
 		virtual void HandleMessage( const CameraDestroyedMessage& msg );
 
 	protected:
-		GameObject* m_rootGameObject;
+		virtual void GetRenderablesForCamera( Camera* cam, std::vector<GameObject*>& outObjects );
+
+		virtual void RebuildMeshCache();
+
+		Transform m_root;
 
 		std::unordered_map<GameObjectID, GameObjectPtr> m_gameObjects;
 
 		std::vector<Light*> m_lights;
 		std::vector<Camera*> m_cameras;
 
+		std::vector<Mesh*> m_meshCache;
+
 		GameObjectID GetNextID();
 		std::stack<GameObjectID> m_freeIDs;
 		GameObjectID m_nextID;
 
 		Color m_ambientColor;
+
+		// [0 .. 1]
+		float m_ambientIntensity;
 
 	};
 }

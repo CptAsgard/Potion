@@ -5,35 +5,6 @@ namespace Potion
 	GameObject::GameObject()
 	{ }
 
-	void GameObject::AddChild( GameObject * child )
-	{
-		m_children.insert( std::pair<GameObjectID, GameObject*>( child->GetID(), child ) );
-		child->SetParent( this );
-	}
-
-	void GameObject::RemoveChild( const GameObjectID& id )
-	{
-		m_children.erase( id );
-	}
-
-	GameObject * GameObject::GetChild( const GameObjectID& id )
-	{
-		return m_children.at( id );
-	}
-
-	void GameObject::SetParent( GameObject * parent )
-	{
-		if( m_parent != nullptr )
-			m_parent->RemoveChild( this->GetID() );
-
-		m_parent = parent;
-	}
-
-	GameObject * GameObject::GetParent()
-	{
-		return m_parent;
-	}
-
 	void GameObject::SetActive( bool active )
 	{
 		this->m_isActive = active;

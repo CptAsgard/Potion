@@ -6,42 +6,87 @@ namespace Potion
 	{
 		Subscribe( Event, *this );
 
-		this->m_rootGameObject = new GameObject();
-
 		this->m_freeIDs = std::stack<GameObjectID>();
 		this->m_gameObjects = std::unordered_map<GameObjectID, GameObjectPtr>();
 	}
 
 	SceneGraph::~SceneGraph()
-	{ }
+	{}
 
-	// TODO: Take into account parent transforms
+	/*
+	 * The complexity of this function is: O( cameras * lights * objects )
+	 * It's about as inefficient as it gets. However, the class is subclassable.
+	 * Go write a BSPSceneGraph or an OctreeSceneGraph if you'd like.
+	 */
 	void SceneGraph::DrawAll()
 	{
-		std::vector<Mesh*> drawables;
+		RebuildMeshCache();
 
-		for( const auto& kv : m_gameObjects )
+		SetAmbientColor( m_ambientColor );
+		SetAmbientIntensity( m_ambientIntensity );
+
+		// Loop over every camera to render
+		for( Camera* camera : m_cameras )
 		{
-			auto* ptr = kv.second.get();
-			
-			if( ptr->GetMesh() != nullptr )
-				m_cameras.at( 0 )->Render( *ptr );
+			std::vector<GameObject*> drawables;
+			GetRenderablesForCamera( camera, drawables );
+
+			for( const auto& go : drawables )
+			{
+				go->GetMesh()->GetMaterial()->GetShader()->SetUniform( std::string( "_WorldSpaceCameraPos" ), camera->GetTransform().GetPosition() );
+				camera->Render( *go );
+			}
 		}
 	}
 
-	// TODO: Set ambient light shader uniform for all materials
-	void SceneGraph::SetAmbientLight( const Color & color )
+	void SceneGraph::SetAmbientColor( const Color & color )
 	{
+		m_ambientColor = color;
+
+		for( Mesh* meshPtr : m_meshCache )
+		{
+			meshPtr->GetMaterial()->GetShader()->SetUniform( "POT_AMBIENT_COLOR", m_ambientColor.AsRGB() );
+		}
+	}
+
+	void SceneGraph::SetAmbientIntensity( float intensity )
+	{
+		m_ambientIntensity = intensity;
+
+		for( Mesh* meshPtr : m_meshCache )
+		{
+			meshPtr->GetMaterial()->GetShader()->SetUniform( "POT_AMBIENT_INTENSITY", m_ambientIntensity );
+		}
+	}
+
+	// TODO: Camera culling mask/GO layers
+	// TODO: Material sorting 
+	void SceneGraph::GetRenderablesForCamera( Camera * cam, std::vector<GameObject*>& outObjects )
+	{
+		for( const auto& kv : m_gameObjects )
+		{
+			auto* ptr = kv.second.get();
+
+			if( ptr->GetMesh() != nullptr )
+				outObjects.push_back( ptr );
+		}
+	}
+
+	void SceneGraph::RebuildMeshCache()
+	{
+		m_meshCache.clear();
+
+		// Build a cache of all meshes once every frame, after the update, so every function doesn't have to recreate it.
+		// We recreate it every frame because it can change in the update loops.
 		for( const auto& kv : m_gameObjects )
 		{
 			auto* ptr = kv.second.get();
 			Mesh* meshPtr;
-
 			if( ( meshPtr = ptr->GetMesh() ) != nullptr )
-				meshPtr->GetMaterial()->GetShader()->SetUniform( std::string( "_WorldSpaceCameraPos" ), m_cameras.at( 0 )->GetTransform().GetPosition() );
+			{
+				this->m_meshCache.push_back( meshPtr );
+			}
 		}
-
-		m_ambientColor = color;
 	}
 
 	void SceneGraph::AttachToScene( GameObject * GO )
@@ -51,14 +96,15 @@ namespace Potion
 		m_gameObjects.insert( std::pair<GameObjectID, GameObjectPtr>( addedID, GameObjectPtr( GO ) ) );
 		GO->SetID( addedID );
 
-		GetRoot()->AddChild( GO );
+		if( !GO->GetTransform().GetParent() )
+			GO->GetTransform().SetParent( GetRoot() );
 
-		printf( "New GameObject added to scene. ID: %i\n", GO->GetID() );
+		printf( "   New GameObject added to scene. ID: %i\n", GO->GetID() );
 	}
 
-	GameObject * SceneGraph::GetRoot()
+	Transform * SceneGraph::GetRoot()
 	{
-		return m_rootGameObject;
+		return &m_root;
 	}
 
 	GameObject * SceneGraph::FindGameObject( GameObjectID entity ) const
@@ -76,10 +122,13 @@ namespace Potion
 	{
 		GameObjectID newID;
 
-		if( m_freeIDs.size() != 0 ) {
+		if( m_freeIDs.size() != 0 )
+		{
 			newID = m_freeIDs.top();
 			m_freeIDs.pop();
-		} else {
+		}
+		else
+		{
 			newID = m_nextID;
 			m_nextID++;
 		}
@@ -87,31 +136,31 @@ namespace Potion
 		return newID;
 	}
 
-	void SceneGraph::HandleMessage(const LightCreatedMessage & msg)
+	void SceneGraph::HandleMessage( const LightCreatedMessage & msg )
 	{
 		m_lights.push_back( msg.newObj );
 
-		printf( "Created a new light source!\n" );
+		printf( "   Created a new light source!\n" );
 	}
 
-	void SceneGraph::HandleMessage(const LightDestroyedMessage & msg)
+	void SceneGraph::HandleMessage( const LightDestroyedMessage & msg )
 	{
 		m_lights.erase( std::remove( m_lights.begin(), m_lights.end(), msg.newObj ), m_lights.end() );
 
-		printf( "Removed a light source!\n" );
+		printf( "   Removed a light source!\n" );
 	}
 
-	void SceneGraph::HandleMessage(const CameraCreatedMessage & msg)
+	void SceneGraph::HandleMessage( const CameraCreatedMessage & msg )
 	{
 		m_cameras.push_back( msg.newObj );
 
-		printf( "Created a new camera!\n" );
+		printf( "   Created a new camera!\n" );
 	}
 
-	void SceneGraph::HandleMessage(const CameraDestroyedMessage & msg)
+	void SceneGraph::HandleMessage( const CameraDestroyedMessage & msg )
 	{
 		m_cameras.erase( std::remove( m_cameras.begin(), m_cameras.end(), msg.newObj ), m_cameras.end() );
-		
-		printf( "Removed a camera!\n" );
+
+		printf( "   Removed a camera!\n" );
 	}
 }

@@ -1,6 +1,9 @@
 #ifndef _COLOR_H
 #define _COLOR_H
 
+#include "..\Math\Vector3.hpp"
+#include "..\Math\Vector4.hpp"
+
 namespace Potion
 {
 	class Color
@@ -12,6 +15,9 @@ namespace Potion
 		Color( unsigned char R, unsigned char G, unsigned char B );
 		Color( unsigned char R, unsigned char G, unsigned char B, unsigned char A );
 		Color( unsigned int hex );
+
+		Vector3 AsRGB() const;
+		Vector4 AsRGBA() const;
 
 		const static Color Black; // Color(0, 0, 0)
 		const static Color White; // Color(255, 255, 255)
