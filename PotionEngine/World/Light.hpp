@@ -13,23 +13,29 @@ namespace Potion
 		Light();
 		~Light();
 
+		float GetIntensity() const;
 		void SetIntensity( float intensity );
 
+		const Color& GetColor() const;
 		void SetColor( Color& color );
 
+		float GetAttenuation() const;
 		void SetAttenuation( float attenuation );
 
-		void SetAmbientValue( float ambient );
-
+		float GetConeAngle() const;
 		void SetConeAngle( float angle );
+
+		bool IsDirectional() const;
+		void SetDirectional( bool flag );
 
 	private:
 		Color m_color;
 
 		float m_intensity;
 		float m_attenuation;
-		float m_ambient;
 		float m_coneAngle;
+
+		bool m_isDirectional;
 
 	};
 

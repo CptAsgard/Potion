@@ -205,6 +205,11 @@ namespace Potion
 		return retVal;
 	}
 
+	Matrix Matrix::CreateScale( const Vector3 & scale )
+	{
+		return Matrix::CreateScale( scale.X, scale.Y, scale.Z );
+	}
+
 	Matrix Matrix::CreateTranslation( float x, float y, float z )
 	{
 		Matrix retVal;

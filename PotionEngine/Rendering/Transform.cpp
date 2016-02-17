@@ -15,7 +15,7 @@ namespace Potion
 
 	void Transform::Translate( Vector3 & pos )
 	{
-		pos = GetRotationMatrix().Translate( pos );
+		pos = GetWorldRotationMatrix().Translate( pos );
 
 		m_position += pos;
 	}
@@ -50,15 +50,15 @@ namespace Potion
 
 	Vector3 Transform::GetRotation() const
 	{
-		if( m_parent )
-			return m_parent->GetWorldRotation() + m_rotation;
-		else
-			return m_rotation;
+		return m_rotation;
 	}
 
 	Vector3 Transform::GetWorldRotation() const
 	{
-		return Vector3();
+		if( m_parent )
+			return m_parent->GetWorldRotation() + m_rotation;
+		else
+			return m_rotation;
 	}
 
 	void Transform::SetScale( Vector3 & scale )
@@ -81,13 +81,13 @@ namespace Potion
 
 	void Transform::LookAt( Vector3 target )
 	{
-		Vector3 lookDir = ( target - m_position ).Normalized();
+		Vector3 lookDir = ( target - GetWorldPosition() ).Normalized();
 
 		float lookLengthOnXZ = sqrtf( lookDir.Z*lookDir.Z + lookDir.X*lookDir.X );
 		float m_rotationX = -RadToDeg( atan2f( lookDir.Y, lookLengthOnXZ ) );
 		float m_rotationY = RadToDeg( atan2f( lookDir.X, lookDir.Z ) );
 
-		SetRotation( Vector3( m_rotationX, m_rotationY, GetRotation().Z ) );
+		SetRotation( Vector3( m_rotationX, m_rotationY, GetWorldRotation().Z ) );
 
 		RecalculateMatrix();
 	}
@@ -100,17 +100,18 @@ namespace Potion
 
 	Vector3 Transform::GetForward()
 	{
-		return GetRotationMatrix().Translate( Vector3( 0, 0, 1 ) );
+		return GetWorldRotationMatrix().Translate( Vector3( 0, 0, 1 ) );
 	}
 
 	void Transform::RecalculateMatrix()
 	{
-		m_matrix = Matrix::CreateTranslation( GetWorldPosition() ) * GetRotationMatrix() * Matrix::CreateScale( m_scale.X, m_scale.Y, m_scale.Z );
+		m_matrix = Matrix::CreateTranslation( GetWorldPosition() ) * GetWorldRotationMatrix() * Matrix::CreateScale( GetWorldScale() );
 	}
 
-	Matrix Transform::GetRotationMatrix()
+	Matrix Transform::GetWorldRotationMatrix()
 	{
-		return ( Matrix::CreateRotationZ( m_rotation.Z ) * Matrix::CreateRotationY( m_rotation.Y ) * Matrix::CreateRotationX( m_rotation.X ) );
+		Vector3 worldRotation = GetWorldRotation();
+		return ( Matrix::CreateRotationZ( worldRotation.Z ) * Matrix::CreateRotationY( worldRotation.Y ) * Matrix::CreateRotationX( worldRotation.X ) );
 	}
 
 	void Transform::AddChild( Transform * obj )
@@ -131,9 +132,6 @@ namespace Potion
 
 	Transform * Transform::GetChild( int index )
 	{
-		POT_ASSERT( index < m_children.size() );
-		POT_ASSERT( index > 0 );
-
 		return m_children[ index ];
 	}
 
@@ -148,11 +146,11 @@ namespace Potion
 			m_parent->RemoveChild( this );
 
 		if( newParent )
-		{
 			newParent->AddChild( this );
-		}
 
 		SetPosition( GetWorldPosition() - newParent->GetWorldPosition() );
+		SetRotation( GetWorldRotation() - newParent->GetWorldRotation() );
+		SetScale( GetWorldScale() - newParent->GetWorldScale() );
 
 		m_parent = newParent;
 	}

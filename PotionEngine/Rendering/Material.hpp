@@ -25,6 +25,12 @@ namespace Potion
 		void SetColor( Color col );
 		Color GetColor() const;
 
+		void SetSpecularColor( const Color& col );
+		Color GetSpecularColor() const;
+
+		void SetShininess( float shininess );
+		float GetShininess() const;
+
 		void ActivateForDraw();
 
 	private:
@@ -43,6 +49,8 @@ namespace Potion
 		Shader* shader;
 
 		Color m_color;
+		Color m_specularColor;
+		float m_shininess;
 
 	};
 

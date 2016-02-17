@@ -2,7 +2,7 @@
 
 namespace Potion
 {
-	Light::Light()
+	Light::Light() : m_isDirectional( false ), m_color( Color( 255.f, 255.f, 255.f ) ), m_intensity( 1.f )
 	{
 		Event.Send( LightCreatedMessage( this ) );
 	}
@@ -12,9 +12,19 @@ namespace Potion
 		Event.Send( LightDestroyedMessage( this ) );
 	}
 
+	float Light::GetIntensity() const
+	{
+		return m_intensity;
+	}
+
 	void Light::SetIntensity( float intensity )
 	{
 		m_intensity = intensity;
+	}
+
+	const Color & Light::GetColor() const
+	{
+		return m_color;
 	}
 
 	void Light::SetColor( Color& color )
@@ -22,21 +32,33 @@ namespace Potion
 		m_color = color;
 	}
 
-	// TODO: Implement
-	void Light::SetAttenuation( float attenuation )
+	float Light::GetAttenuation() const
 	{
-	
+		return m_attenuation;
 	}
 
-	// TODO: Implement
-	void Light::SetAmbientValue( float ambient )
+	void Light::SetAttenuation( float attenuation )
 	{
-	
+		m_attenuation = attenuation;
 	}
 	
-	// TODO: Implement
+	float Light::GetConeAngle() const
+	{
+		return m_coneAngle;
+	}
+
 	void Light::SetConeAngle( float angle )
 	{
-	
+		m_coneAngle = angle;
+	}
+
+	bool Light::IsDirectional() const
+	{
+		return m_isDirectional;
+	}
+
+	void Light::SetDirectional( bool flag )
+	{
+		m_isDirectional = flag;
 	}
 }

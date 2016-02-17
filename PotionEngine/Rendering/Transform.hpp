@@ -54,7 +54,7 @@ namespace Potion
 	private:
 		void RecalculateMatrix();
 
-		Matrix GetRotationMatrix();
+		Matrix GetWorldRotationMatrix();
 
 		std::vector< Transform* > m_children;
 		Transform* m_parent;

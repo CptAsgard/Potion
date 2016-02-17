@@ -24,6 +24,7 @@ namespace Potion
 
 		SetAmbientColor( m_ambientColor );
 		SetAmbientIntensity( m_ambientIntensity );
+		SetLightUniforms();
 
 		// Loop over every camera to render
 		for( Camera* camera : m_cameras )
@@ -33,7 +34,18 @@ namespace Potion
 
 			for( const auto& go : drawables )
 			{
-				go->GetMesh()->GetMaterial()->GetShader()->SetUniform( std::string( "_WorldSpaceCameraPos" ), camera->GetTransform().GetPosition() );
+				auto& transform = go->GetTransform();
+				auto* material = go->GetMesh()->GetMaterial();
+				auto* shader = material->GetShader();
+
+				shader->SetUniform( std::string( "_WorldSpaceCameraPos" ), camera->GetTransform().GetPosition() );
+				shader->SetUniform( std::string( "_Object2World" ), transform.GetLocalToWorldMatrix() );
+				shader->SetUniform( std::string( "_Normal2World" ), transform.GetLocalToWorldMatrix().Inverted().Mirror() );
+
+				shader->SetUniform( std::string( "_Color" ), material->GetColor().AsRGB() );
+				shader->SetUniform( std::string( "_SpecularColor" ), material->GetSpecularColor().AsRGB() );
+				shader->SetUniform( std::string( "_Shininess" ), material->GetShininess() );
+
 				camera->Render( *go );
 			}
 		}
@@ -59,8 +71,6 @@ namespace Potion
 		}
 	}
 
-	// TODO: Camera culling mask/GO layers
-	// TODO: Material sorting 
 	void SceneGraph::GetRenderablesForCamera( Camera * cam, std::vector<GameObject*>& outObjects )
 	{
 		for( const auto& kv : m_gameObjects )
@@ -89,6 +99,45 @@ namespace Potion
 		}
 	}
 
+	void SceneGraph::SetLightUniforms()
+	{
+		for( Mesh* meshPtr : m_meshCache )
+		{
+			auto* shader = meshPtr->GetMaterial()->GetShader();
+
+			shader->SetUniform( "numLights", (int) m_lights.size() );
+			for( int i = 0; i < m_lights.size(); i++ )
+			{
+				Vector3 worldPos = m_lights[ i ]->GetTransform().GetWorldPosition();
+
+				if( m_lights[ i ]->IsDirectional() )
+				{
+					Vector3 forward = m_lights[ i ]->GetTransform().GetForward();
+					SetLightUniform( shader, "position", i, Vector4( forward.X, forward.Y, forward.Z, 0 ) );
+				}
+				else
+				{
+					SetLightUniform( shader, "position", i, Vector4( worldPos.X, worldPos.Y, worldPos.Z, 1 ) );
+				}
+
+				SetLightUniform( shader, "color", i, m_lights[ i ]->GetColor().AsRGB() );
+				SetLightUniform( shader, "attenuation", i, m_lights[ i ]->GetAttenuation() );
+				SetLightUniform( shader, "coneAngle", i, m_lights[ i ]->GetConeAngle() );
+				SetLightUniform( shader, "coneDirection", i, m_lights[ i ]->GetTransform().GetForward() );
+				SetLightUniform( shader, "intensity", i, m_lights[ i ]->GetIntensity() );
+			}
+		}
+	}
+
+	template<typename T>
+	inline void SceneGraph::SetLightUniform( Shader * shader, const char * propertyName, size_t lightIndex, const T & value )
+	{
+		std::ostringstream ss;
+		ss << "_Lights[" << lightIndex << "]." << propertyName;
+
+		shader->SetUniform( ss.str(), value );
+	}
+
 	void SceneGraph::AttachToScene( GameObject * GO )
 	{
 		GameObjectID addedID = GetNextID();
@@ -109,13 +158,25 @@ namespace Potion
 
 	GameObject * SceneGraph::FindGameObject( GameObjectID entity ) const
 	{
-		return m_gameObjects.at( entity ).get();
+		if( m_gameObjects.find(entity) != m_gameObjects.end() )
+			return m_gameObjects.at( entity ).get();
+		else
+			return nullptr;
+	}
+
+	void SceneGraph::DestroyGameObject( GameObject * obj )
+	{
+		if( obj != nullptr )
+			DestroyGameObject( obj->GetID() );
 	}
 
 	void SceneGraph::DestroyGameObject( const GameObjectID id )
 	{
-		m_gameObjects.erase( id );
-		m_freeIDs.push( id );
+		if( m_gameObjects.find( id ) != m_gameObjects.end() )
+		{
+			m_gameObjects.erase( id );
+			m_freeIDs.push( id );
+		}
 	}
 
 	GameObjectID SceneGraph::GetNextID()

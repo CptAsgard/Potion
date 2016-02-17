@@ -114,6 +114,7 @@ namespace Potion
 	{
 		// clear
 		// TODO: Move clear behaviour to Camera
+		// TODO: OpenGL
 		glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 		states.back()->Draw( this );

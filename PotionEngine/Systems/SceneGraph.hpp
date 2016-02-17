@@ -5,6 +5,9 @@
 #include <algorithm>
 #include <stack>
 
+#include <iostream>
+#include <sstream>
+
 #include "..\Events\MessageBus.hpp"
 
 #include "..\World\GameObject.hpp"
@@ -15,10 +18,16 @@ namespace Potion
 {
 	class GameObject;
 
+	/**
+	   TODO: Draw call ordering
+	 * http://realtimecollisiondetection.net/blog/?p=86
+	 * The system is -very- explicit and -very- unoptimized.
+	 * However, it is completely subclassable
+	 * write your own optimized renderer if you want to.
+	 */
 	class SceneGraph : 	MessageReceiver< LightCreatedMessage, LightDestroyedMessage,
 										 CameraCreatedMessage, CameraDestroyedMessage >
 	{
-
 	public:
 		SceneGraph();
 		virtual ~SceneGraph();
@@ -44,6 +53,7 @@ namespace Potion
 
 		virtual GameObject* FindGameObject( GameObjectID entity ) const;
 
+		virtual void DestroyGameObject( GameObject* obj );
 		virtual void DestroyGameObject( const GameObjectID id );
 
 		virtual void HandleMessage( const LightCreatedMessage& msg );
@@ -56,6 +66,11 @@ namespace Potion
 		virtual void GetRenderablesForCamera( Camera* cam, std::vector<GameObject*>& outObjects );
 
 		virtual void RebuildMeshCache();
+
+		virtual void SetLightUniforms();
+
+		template <typename T>
+		void SetLightUniform( Shader* shader, const char* propertyName, size_t lightIndex, const T& value );
 
 		Transform m_root;
 

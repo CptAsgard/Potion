@@ -2,7 +2,7 @@
 
 namespace Potion
 {
-	Material::Material()
+	Material::Material() : m_color( Color( 255, 255, 255 ) ), m_specularColor( Color( 255, 255, 255 ) ), m_shininess( 1.f )
 	{
 		if( shader == nullptr ) {
 			shader = new Shader();
@@ -69,24 +69,32 @@ namespace Potion
 
 	void Material::SetColor( Color col )
 	{
-		if( shader == nullptr ) {
-			printf( "No active shader! You can't set textures before assigning a shader.\n" );
-			return;
-		}
-
-		GLint uniformLoc = glGetUniformLocation( this->shader->GetProgramHandle(), "_Color" );
-
-		if( uniformLoc == -1 ) {
-			printf( "Couldn't find location of uniform '_Color' in current shader!\n" );
-			return;
-		}
-
 		this->m_color = col;
 	}
 
 	Color Material::GetColor() const
 	{
 		return this->m_color;
+	}
+
+	void Material::SetSpecularColor( const Color & col )
+	{
+		this->m_specularColor = col;
+	}
+
+	Color Material::GetSpecularColor() const
+	{
+		return this->m_specularColor;
+	}
+
+	void Material::SetShininess( float shininess )
+	{
+		this->m_shininess = shininess;
+	}
+
+	float Material::GetShininess() const
+	{
+		return this->m_shininess;
 	}
 
 	void Material::ActivateForDraw()
