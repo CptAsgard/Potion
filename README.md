@@ -1,10 +1,11 @@
 # Potion
-Simple OpenGL framework for games and graphics. The project is built around code readability, without restricting the user.
+A bootstrapping project for real-time applications. Is meant as a base to avoid direct OpenGL. Potion has the following features.
 
-To use the project, simply treat the root folder as the 'include' directory.
+- Stateless rendering architecture for minimalizing state changes
+- Build process to integrate an 'Assets' folder into the build
+- Support for render textures and image effects
+- Support for switching materials and shaders intuitively
+   - Automatically reassigns any assignments done to a material, such as textures, if the shader is changed
 
-# Build
-
-TODO: Add build process
-
-The output of the build will be in the "lib" folder of the root.
+# How to Use
+Currently, Potion is not ready for use in a project. However, the project is being actively developed. If the project comes to a usable state, I will describe how to use Potion in your projects.
