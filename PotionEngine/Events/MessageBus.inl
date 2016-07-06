@@ -5,7 +5,9 @@ void MessageBus::AddSubscriber( const MessageReceiverSingle<Message>& receiver )
 	std::type_index index = std::type_index( typeid(Message) );
 
 	if( !SubscriptionExists( index, receiverPtr ) )
+	{
 		subscribers[ index ].push_back( receiverPtr );
+	}
 }
 
 template<class Message>

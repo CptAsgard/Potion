@@ -1,9 +1,8 @@
-#ifndef _TEXTURE_H
-#define _TEXTURE_H
+#pragma once
 
-#include <string>
 #include <vector>
-#include <gl\glew.h>
+
+#include "..\OpenGL.hpp"
 
 namespace Potion
 {
@@ -11,28 +10,39 @@ namespace Potion
 	class Texture
 	{
 	public:
-		Texture();
-		Texture( std::string path );
-		~Texture();
 
-		bool LoadFromFile( std::string path );
+		/// Create a texture by loading from a file
+		/// Uses stb_image (as SOIL does). Check for supported formats
+		/// in the stb_image header
+		Texture( const std::string& filename );
 
-		void BindGL();
-		void Apply();
-		void Use();
-		void Clear();
+		/// Creates an empty texture with given size. You will need to provide
+		/// the data.
+		Texture( int width, int height );
 
-		GLuint GetHandle() const
-		{
-			return Handle;
-		}
+		/// Releases OpenGL resources
+		virtual ~Texture();
 
-	private:
-		GLuint Handle;
-		unsigned int width, height;
+		/// Get the texture ID in OpenGL
+		GLuint GetTexture() const { return textureID; }
 
-		std::vector<unsigned char> rawImg;
+		/// Sets the texture as the active texture
+		virtual void SetActive( int index = 0 ) const;
+
+		/// Creates a texture from RGBA provided data
+		virtual void CreateGLTextureWithData( GLubyte* data, bool genMipMaps );
+
+	protected:
+		/// Used for the label
+		Texture() {}
+
+		void Initialize( bool genMipMaps );
+		void Finalize( bool genMipMaps );
+
+		GLuint textureID = 0;
+		int width = 0;
+		int height = 0;
+		int channels = 0;
 	};
 
 }
-#endif // _TEXTURE_H

@@ -33,26 +33,19 @@ namespace Potion
 		return sqrtf( ((this->X - other.X) * (this->X - other.X)) + ((this->Y - other.Y) * (this->Y - other.Y)) + ((this->Z - other.Z) * (this->Z - other.Z)) + ((this->W - other.W) * (this->W - other.W)) );
 	}
 
-	float Vector4::Length() const
+	float Vector4::Magnitude() const
 	{
-		return sqrtf( powf( X, 2.0 ) + powf( Y, 2.0 ) + powf( Z, 2.0 ) + powf( W, 2.0 ) );
+		return sqrtf( SquareMagnitude() );
+	}
+
+	float Vector4::SquareMagnitude() const
+	{
+		return powf( X, 2.0 ) + powf( Y, 2.0 ) + powf( Z, 2.0 ) + powf( W, 2.0 );
 	}
 
 	Vector4 Vector4::Normalized() const
 	{
-		return (*this) / Length();
-	}
-
-	Vector4 Vector4::Cross( const Vector4& other ) const
-	{
-		Vector4 retVal;
-
-		retVal.X = Y * other.Z - Z * other.Y;
-		retVal.Y = Z * other.X - X * other.Z;
-		retVal.Z = X * other.Y - Y * other.X;
-		retVal.W = W * other.W - W * other.W;
-
-		return retVal;
+		return (*this) / Magnitude();
 	}
 
 	float Vector4::Dot( const Vector4& other ) const

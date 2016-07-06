@@ -1,6 +1,8 @@
 #include "Matrix.hpp"
+
 #define _SCL_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
+
 #include <math.h>
 #include <algorithm>
 
@@ -8,88 +10,185 @@ namespace Potion
 {
 	Matrix::Matrix()
 	{
-		values = new float[ 16 ]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+		const float newvals[] = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f };
+		std::copy( newvals, newvals + sizeof( newvals ) / sizeof( newvals[ 0 ] ), values );
 	}
 
-	Matrix::~Matrix()
+	Matrix::Matrix( float value )
 	{
-		delete[] values;
+		const float newvals[] = { value, value, value, value, value, value, value, value, value, value, value, value, value, value, value, value };
+		std::copy( newvals, newvals + sizeof( newvals ) / sizeof( newvals[ 0 ] ), values );
 	}
 
 	Matrix::Matrix( float m11, float m12, float m13, float m14, float m21, float m22, float m23, float m24, float m31, float m32, float m33, float m34, float m41, float m42, float m43, float m44 )
 	{
-		values = new float[ 16 ]{ m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 };
+		const float newvals[] = { m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 };
+		std::copy( newvals, newvals + sizeof( newvals ) / sizeof( newvals[ 0 ] ), values );
 	}
 
-	Matrix::Matrix( float v )
+	Vector3 Matrix::operator*( const Vector3 & vec ) const
 	{
-		values = new float[ 16 ]{ v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v };
+		return TransformDirectionVector( vec );
 	}
 
-	Matrix::Matrix( const Matrix& other )
+	Matrix Matrix::operator*( const Matrix& other ) const
 	{
-		values = new float[ 16 ];
-		std::copy( other.values, &other.values[ 16 ], values );
+		Matrix retVal;
+
+		retVal.values[ 0 ] = values[ 0 ] * other.values[ 0 ] + values[ 1 ] * other.values[ 4 ] + values[ 2 ] * other.values[ 8 ] + values[ 3 ] * other.values[ 12 ];
+		retVal.values[ 1 ] = values[ 0 ] * other.values[ 1 ] + values[ 1 ] * other.values[ 5 ] + values[ 2 ] * other.values[ 9 ] + values[ 3 ] * other.values[ 13 ];
+		retVal.values[ 2 ] = values[ 0 ] * other.values[ 2 ] + values[ 1 ] * other.values[ 6 ] + values[ 2 ] * other.values[ 10 ] + values[ 3 ] * other.values[ 14 ];
+		retVal.values[ 3 ] = values[ 0 ] * other.values[ 3 ] + values[ 1 ] * other.values[ 7 ] + values[ 2 ] * other.values[ 11 ] + values[ 3 ] * other.values[ 15 ];
+
+		retVal.values[ 4 ] = values[ 4 ] * other.values[ 0 ] + values[ 5 ] * other.values[ 4 ] + values[ 6 ] * other.values[ 8 ] + values[ 7 ] * other.values[ 12 ];
+		retVal.values[ 5 ] = values[ 4 ] * other.values[ 1 ] + values[ 5 ] * other.values[ 5 ] + values[ 6 ] * other.values[ 9 ] + values[ 7 ] * other.values[ 13 ];
+		retVal.values[ 6 ] = values[ 4 ] * other.values[ 2 ] + values[ 5 ] * other.values[ 6 ] + values[ 6 ] * other.values[ 10 ] + values[ 7 ] * other.values[ 14 ];
+		retVal.values[ 7 ] = values[ 4 ] * other.values[ 3 ] + values[ 5 ] * other.values[ 7 ] + values[ 6 ] * other.values[ 11 ] + values[ 7 ] * other.values[ 15 ];
+
+		retVal.values[ 8 ] = values[ 8 ] * other.values[ 0 ] + values[ 9 ] * other.values[ 4 ] + values[ 10 ] * other.values[ 8 ] + values[ 11 ] * other.values[ 12 ];
+		retVal.values[ 9 ] = values[ 8 ] * other.values[ 1 ] + values[ 9 ] * other.values[ 5 ] + values[ 10 ] * other.values[ 9 ] + values[ 11 ] * other.values[ 13 ];
+		retVal.values[ 10 ] = values[ 8 ] * other.values[ 2 ] + values[ 9 ] * other.values[ 6 ] + values[ 10 ] * other.values[ 10 ] + values[ 11 ] * other.values[ 14 ];
+		retVal.values[ 11 ] = values[ 8 ] * other.values[ 3 ] + values[ 9 ] * other.values[ 7 ] + values[ 10 ] * other.values[ 11 ] + values[ 11 ] * other.values[ 15 ];
+
+		retVal.values[ 12 ] = values[ 12 ] * other.values[ 0 ] + values[ 13 ] * other.values[ 4 ] + values[ 14 ] * other.values[ 8 ] + values[ 15 ] * other.values[ 12 ];
+		retVal.values[ 13 ] = values[ 12 ] * other.values[ 1 ] + values[ 13 ] * other.values[ 5 ] + values[ 14 ] * other.values[ 9 ] + values[ 15 ] * other.values[ 13 ];
+		retVal.values[ 14 ] = values[ 12 ] * other.values[ 2 ] + values[ 13 ] * other.values[ 6 ] + values[ 14 ] * other.values[ 10 ] + values[ 15 ] * other.values[ 14 ];
+		retVal.values[ 15 ] = values[ 12 ] * other.values[ 3 ] + values[ 13 ] * other.values[ 7 ] + values[ 14 ] * other.values[ 11 ] + values[ 15 ] * other.values[ 15 ];
+
+		return retVal;
 	}
 
-	Matrix::Matrix( Matrix&& other )
+	Matrix Matrix::operator+( const Matrix & mat ) const
 	{
-		values = other.values;
-		other.values = nullptr;
+		Matrix retVal;
+		retVal.values[ 0 ] = values[ 0 ] + mat.values[ 0 ];
+		retVal.values[ 1 ] = values[ 1 ] + mat.values[ 1 ];
+		retVal.values[ 2 ] = values[ 2 ] + mat.values[ 2 ];
+		retVal.values[ 3 ] = values[ 3 ] + mat.values[ 3 ];
+
+		retVal.values[ 4 ] = values[ 4 ] + mat.values[ 4 ];
+		retVal.values[ 5 ] = values[ 5 ] + mat.values[ 5 ];
+		retVal.values[ 6 ] = values[ 6 ] + mat.values[ 6 ];
+		retVal.values[ 7 ] = values[ 7 ] + mat.values[ 7 ];
+
+		retVal.values[ 8 ] = values[ 8 ] + mat.values[ 8 ];
+		retVal.values[ 9 ] = values[ 9 ] + mat.values[ 9 ];
+		retVal.values[ 10 ] = values[ 10 ] + mat.values[ 10 ];
+		retVal.values[ 11 ] = values[ 11 ] + mat.values[ 11 ];
+
+		retVal.values[ 12 ] = values[ 12 ] + mat.values[ 12 ];
+		retVal.values[ 13 ] = values[ 13 ] + mat.values[ 13 ];
+		retVal.values[ 14 ] = values[ 14 ] + mat.values[ 14 ];
+		retVal.values[ 15 ] = values[ 15 ] + mat.values[ 15 ];
+		return retVal;
 	}
 
-	Vector3 Matrix::Translate( float x, float y, float z ) const
+	Matrix Matrix::operator-( const Matrix & mat ) const
+	{
+		Matrix retVal;
+		retVal.values[ 0 ] = values[ 0 ] - mat.values[ 0 ];
+		retVal.values[ 1 ] = values[ 1 ] - mat.values[ 1 ];
+		retVal.values[ 2 ] = values[ 2 ] - mat.values[ 2 ];
+		retVal.values[ 3 ] = values[ 3 ] - mat.values[ 3 ];
+
+		retVal.values[ 4 ] = values[ 4 ] - mat.values[ 4 ];
+		retVal.values[ 5 ] = values[ 5 ] - mat.values[ 5 ];
+		retVal.values[ 6 ] = values[ 6 ] - mat.values[ 6 ];
+		retVal.values[ 7 ] = values[ 7 ] - mat.values[ 7 ];
+
+		retVal.values[ 8 ] = values[ 8 ] - mat.values[ 8 ];
+		retVal.values[ 9 ] = values[ 9 ] - mat.values[ 9 ];
+		retVal.values[ 10 ] = values[ 10 ] - mat.values[ 10 ];
+		retVal.values[ 11 ] = values[ 11 ] - mat.values[ 11 ];
+
+		retVal.values[ 12 ] = values[ 12 ] - mat.values[ 12 ];
+		retVal.values[ 13 ] = values[ 13 ] - mat.values[ 13 ];
+		retVal.values[ 14 ] = values[ 14 ] - mat.values[ 14 ];
+		retVal.values[ 15 ] = values[ 15 ] - mat.values[ 15 ];
+		return retVal;
+	}
+
+	/// TODO: Implement
+	Matrix Matrix::CreateRotate( float angle, const Vector3 & axis )
+	{
+		return Matrix();
+	}
+
+	Matrix Matrix::CreateRotateX( float rotation )
+	{
+		Matrix retVal;
+		retVal.values[ 5 ] = cos( rotation );
+		retVal.values[ 6 ] = -sin( rotation );
+		retVal.values[ 9 ] = sin( rotation );
+		retVal.values[ 10 ] = cos( rotation );
+		return retVal;
+	}
+
+	Matrix Matrix::CreateRotateY( float rotation )
+	{
+		Matrix retVal;
+		retVal.values[ 0 ] = cos( rotation );
+		retVal.values[ 2 ] = sin( rotation );
+		retVal.values[ 8 ] = -sin( rotation );
+		retVal.values[ 10 ] = cos( rotation );
+		return retVal;
+	}
+
+	Matrix Matrix::CreateRotateZ( float rotation )
+	{
+		Matrix retVal;
+		retVal.values[ 0 ] = cos( rotation );
+		retVal.values[ 1 ] = -sin( rotation );
+		retVal.values[ 4 ] = sin( rotation );
+		retVal.values[ 5 ] = cos( rotation );
+		return retVal;
+	}
+
+	Vector3 Matrix::TransformDirectionVector( const Vector3& direction ) const
 	{
 		Vector3 retVal = Vector3();
-		retVal.X = values[ 0 ] * x + values[ 1 ] * y + values[ 2 ] * z + values[ 3 ];
-		retVal.Y = values[ 4 ] * x + values[ 5 ] * y + values[ 6 ] * z + values[ 7 ];
-		retVal.Z = values[ 8 ] * x + values[ 9 ] * y + values[ 10 ] * z + values[ 11 ];
+		retVal.X = direction.X * values[ 0 ] + direction.Y * values[ 1 ] + direction.Z * values[ 2 ] + values[ 3 ];
+		retVal.Y = direction.X * values[ 4 ] + direction.Y * values[ 5 ] + direction.Z * values[ 6 ] + values[ 7 ];
+		retVal.Z = direction.X * values[ 8 ] + direction.Y * values[ 9 ] + direction.Z * values[ 10 ] + values[ 11 ];
 		return retVal;
 	}
 
-	Vector3 Matrix::Translate( const Vector3& input ) const
+	Matrix Matrix::CreateScale( const Vector3 & scale )
 	{
-		return Translate( input.X, input.Y, input.Z );
-	}
-
-	Vector2 Matrix::Translate( float x, float y ) const
-	{
-		Vector2 retVal;
-		retVal.X = values[ 0 ] * x + values[ 1 ] * y + values[ 2 ];
-		retVal.Y = values[ 4 ] * x + values[ 5 ] * y + values[ 6 ];
+		Matrix retVal;
+		retVal.values[ 0 ] = scale.X;
+		retVal.values[ 5 ] = scale.Y;
+		retVal.values[ 10 ] = scale.Z;
 		return retVal;
 	}
 
-	Vector2 Matrix::Translate( const Vector2& input ) const
+	Matrix Matrix::CreateTranslation( float x, float y, float z )
 	{
-		return Translate( input.X, input.Y );
+		Matrix retVal;
+		retVal.values[ 3 ] = x;
+		retVal.values[ 7 ] = y;
+		retVal.values[ 11 ] = z;
+		return retVal;
 	}
 
-	Matrix Matrix::Lerp( const Matrix& o, float timestep )
+	Matrix Matrix::CreateTranslation( const Vector3& pos )
 	{
-		Matrix ret;
-
-		for( int i = 0; i < 16; i++ ) {
-			ret.values[ i ] = this->values[ i ] + (o.values[ i ] - this->values[ i ]) * timestep;
-		}
-
-		return ret;
+		return CreateTranslation( pos.X, pos.Y, pos.Z );
 	}
 
-	Matrix Matrix::Mirror()
+	Vector3 Matrix::GetTranslation() const
 	{
-		Matrix ret;
-
-		for( int x = 0; x < 4; x++ ) {
-			for( int y = 0; y < 4; y++ ) {
-				ret.values[ x * 4 + y ] = this->values[ y * 4 + x ];
-			}
-		}
-
-		return ret;
+		return this->TransformDirectionVector( Vector3::Zero );
 	}
 
-	Matrix Matrix::Inverted()
+	void Matrix::SetTranslation( const Vector3 & vec )
+	{
+		values[ 3 ] = vec.X;
+		values[ 7 ] = vec.Y;
+		values[ 11 ] = vec.Z;
+	}
+
+	void Matrix::Invert()
 	{
 		float num1 = this->values[ 0 ];
 		float num2 = this->values[ 1 ];
@@ -134,109 +233,77 @@ namespace Potion
 		float num38 = (num5 * num11 - num7 * num9);
 		float num39 = (num5 * num10 - num6 * num9);
 
-		Matrix matrix1;
-		matrix1.values[ 0 ] = num23 * num27;
-		matrix1.values[ 1 ] = -(num2 * num17 - num3 * num18 + num4 * num19) * num27;
-		matrix1.values[ 2 ] = (num2 * num28 - num3 * num29 + num4 * num30) * num27;
-		matrix1.values[ 3 ] = -(num2 * num34 - num3 * num35 + num4 * num36) * num27;
-		matrix1.values[ 4 ] = num24 * num27;
-		matrix1.values[ 5 ] = (num1 * num17 - num3 * num20 + num4 * num21) * num27;
-		matrix1.values[ 6 ] = -(num1 * num28 - num3 * num31 + num4 * num32) * num27;
-		matrix1.values[ 7 ] = (num1 * num34 - num3 * num37 + num4 * num38) * num27;
-		matrix1.values[ 8 ] = num25 * num27;
-		matrix1.values[ 9 ] = -(num1 * num18 - num2 * num20 + num4 * num22) * num27;
-		matrix1.values[ 10 ] = (num1 * num29 - num2 * num31 + num4 * num33) * num27;
-		matrix1.values[ 11 ] = -(num1 * num35 - num2 * num37 + num4 * num39) * num27;
-		matrix1.values[ 12 ] = num26 * num27;
-		matrix1.values[ 13 ] = (num1 * num19 - num2 * num21 + num3 * num22) * num27;
-		matrix1.values[ 14 ] = -(num1 * num30 - num2 * num32 + num3 * num33) * num27;
-		matrix1.values[ 15 ] = (num1 * num36 - num2 * num38 + num3 * num39) * num27;
-		return matrix1;
+		values[ 0 ] = num23 * num27;
+		values[ 1 ] = -(num2 * num17 - num3 * num18 + num4 * num19) * num27;
+		values[ 2 ] = (num2 * num28 - num3 * num29 + num4 * num30) * num27;
+		values[ 3 ] = -(num2 * num34 - num3 * num35 + num4 * num36) * num27;
+		values[ 4 ] = num24 * num27;
+		values[ 5 ] = (num1 * num17 - num3 * num20 + num4 * num21) * num27;
+		values[ 6 ] = -(num1 * num28 - num3 * num31 + num4 * num32) * num27;
+		values[ 7 ] = (num1 * num34 - num3 * num37 + num4 * num38) * num27;
+		values[ 8 ] = num25 * num27;
+		values[ 9 ] = -(num1 * num18 - num2 * num20 + num4 * num22) * num27;
+		values[ 10 ] = (num1 * num29 - num2 * num31 + num4 * num33) * num27;
+		values[ 11 ] = -(num1 * num35 - num2 * num37 + num4 * num39) * num27;
+		values[ 12 ] = num26 * num27;
+		values[ 13 ] = (num1 * num19 - num2 * num21 + num3 * num22) * num27;
+		values[ 14 ] = -(num1 * num30 - num2 * num32 + num3 * num33) * num27;
+		values[ 15 ] = (num1 * num36 - num2 * num38 + num3 * num39) * num27;
 	}
 
-	Matrix& Matrix::operator= ( const Matrix& rhs )
+	void Matrix::Transpose()
 	{
-		if( &rhs == this ) { return *this; }
-		std::copy( rhs.values, &rhs.values[ 16 ], values );
-		return *this;
+		for( int x = 0; x < 4; x++ )
+		{
+			for( int y = 0; y < 4; y++ )
+			{
+				this->values[ x * 4 + y ] = this->values[ y * 4 + x ];
+			}
+		}
 	}
 
-	Matrix Matrix::CreateRotationX( float rotation )
+	/// TODO: Implement
+	void Matrix::SetOrientation( const Vector3 & x, const Vector3 & y, const Vector3 & z )
+	{}
+
+	/// TODO: Implement
+	void Matrix::SetEulerAxis( float yaw, float pitch, float roll )
+	{}
+
+	/// TODO: Implement
+	Vector3 Matrix::GetXAxis() const
 	{
-		Matrix retVal;
-		retVal.values[ 5 ] = cos( rotation );
-		retVal.values[ 6 ] = -sin( rotation );
-		retVal.values[ 9 ] = sin( rotation );
-		retVal.values[ 10 ] = cos( rotation );
-		return retVal;
+		return Vector3();
 	}
 
-	Matrix Matrix::CreateRotationY( float rotation )
+	/// TODO: Implement
+	Vector3 Matrix::GetYAxis() const
 	{
-		Matrix retVal;
-		retVal.values[ 0 ] = cos( rotation );
-		retVal.values[ 2 ] = sin( rotation );
-		retVal.values[ 8 ] = -sin( rotation );
-		retVal.values[ 10 ] = cos( rotation );
-		return retVal;
+		return Vector3();
 	}
 
-	Matrix Matrix::CreateRotationZ( float rotation )
+	/// TODO: Implement
+	Vector3 Matrix::GetZAxis() const
 	{
-		Matrix retVal;
-		retVal.values[ 0 ] = cos( rotation );
-		retVal.values[ 1 ] = -sin( rotation );
-		retVal.values[ 4 ] = sin( rotation );
-		retVal.values[ 5 ] = cos( rotation );
-		return retVal;
+		return Vector3();
 	}
 
-	Matrix Matrix::CreateScale( float scale )
+	/// TODO: Implement
+	float Matrix::Determinant() const
 	{
-		return Matrix::CreateScale( scale, scale, scale );
+		return 0.0f;
 	}
 
-	Matrix Matrix::CreateScale( float x, float y, float z )
+	/// TODO: Implement
+	Matrix Matrix::CreateOrtho( float left, float right, float bottom, float top, float nearZ, float farZ )
 	{
-		Matrix retVal;
-		retVal.values[ 0 ] = x;
-		retVal.values[ 5 ] = y;
-		retVal.values[ 10 ] = z;
-		return retVal;
+		return Matrix();
 	}
 
-	Matrix Matrix::CreateScale( const Vector3 & scale )
+	/// TOOD: Implement
+	Matrix Matrix::CreateFrustum( float left, float right, float bottom, float top, float nearZ, float farZ )
 	{
-		return Matrix::CreateScale( scale.X, scale.Y, scale.Z );
-	}
-
-	Matrix Matrix::CreateTranslation( float x, float y, float z )
-	{
-		Matrix retVal;
-		retVal.values[ 3 ] = x;
-		retVal.values[ 7 ] = y;
-		retVal.values[ 11 ] = z;
-		return retVal;
-	}
-
-	Matrix Matrix::CreateTranslation( const Vector3& pos )
-	{
-		return CreateTranslation( pos.X, pos.Y, pos.Z );
-	}
-
-	Vector3 Matrix::GetTranslation() const
-	{
-		return this->Translate( Vector3::Zero );
-	}
-
-	Vector3 Matrix::GetScale() const
-	{
-		return Vector3( values[ 0 ], values[ 5 ], values[ 10 ] );
-	}
-
-	Matrix Matrix::CreateLookAt( float eyex, float eyey, float eyez, float targetx, float targety, float targetz, float upx, float upy, float upz )
-	{
-		return CreateLookAt( Vector3( eyex, eyey, eyez ), Vector3( targetx, targety, targetz ), Vector3( upx, upy, upz ) );
+		return Matrix();
 	}
 
 	Matrix Matrix::CreateLookAt( const Vector3& eyePos, const Vector3& targetPos, const Vector3& upPos )
@@ -275,33 +342,6 @@ namespace Potion
 		retVal.values[ 10 ] = (zNear + zFar) * rangeInv;
 		retVal.values[ 11 ] = zNear * zFar * rangeInv * 2.0f;
 		retVal.values[ 14 ] = -1.0;
-
-		return retVal;
-	}
-
-	Matrix Matrix::operator*( const Matrix& other ) const
-	{
-		Matrix retVal;
-
-		retVal.values[ 0 ] = values[ 0 ] * other.values[ 0 ] + values[ 1 ] * other.values[ 4 ] + values[ 2 ] * other.values[ 8 ] + values[ 3 ] * other.values[ 12 ];
-		retVal.values[ 1 ] = values[ 0 ] * other.values[ 1 ] + values[ 1 ] * other.values[ 5 ] + values[ 2 ] * other.values[ 9 ] + values[ 3 ] * other.values[ 13 ];
-		retVal.values[ 2 ] = values[ 0 ] * other.values[ 2 ] + values[ 1 ] * other.values[ 6 ] + values[ 2 ] * other.values[ 10 ] + values[ 3 ] * other.values[ 14 ];
-		retVal.values[ 3 ] = values[ 0 ] * other.values[ 3 ] + values[ 1 ] * other.values[ 7 ] + values[ 2 ] * other.values[ 11 ] + values[ 3 ] * other.values[ 15 ];
-
-		retVal.values[ 4 ] = values[ 4 ] * other.values[ 0 ] + values[ 5 ] * other.values[ 4 ] + values[ 6 ] * other.values[ 8 ] + values[ 7 ] * other.values[ 12 ];
-		retVal.values[ 5 ] = values[ 4 ] * other.values[ 1 ] + values[ 5 ] * other.values[ 5 ] + values[ 6 ] * other.values[ 9 ] + values[ 7 ] * other.values[ 13 ];
-		retVal.values[ 6 ] = values[ 4 ] * other.values[ 2 ] + values[ 5 ] * other.values[ 6 ] + values[ 6 ] * other.values[ 10 ] + values[ 7 ] * other.values[ 14 ];
-		retVal.values[ 7 ] = values[ 4 ] * other.values[ 3 ] + values[ 5 ] * other.values[ 7 ] + values[ 6 ] * other.values[ 11 ] + values[ 7 ] * other.values[ 15 ];
-
-		retVal.values[ 8 ] = values[ 8 ] * other.values[ 0 ] + values[ 9 ] * other.values[ 4 ] + values[ 10 ] * other.values[ 8 ] + values[ 11 ] * other.values[ 12 ];
-		retVal.values[ 9 ] = values[ 8 ] * other.values[ 1 ] + values[ 9 ] * other.values[ 5 ] + values[ 10 ] * other.values[ 9 ] + values[ 11 ] * other.values[ 13 ];
-		retVal.values[ 10 ] = values[ 8 ] * other.values[ 2 ] + values[ 9 ] * other.values[ 6 ] + values[ 10 ] * other.values[ 10 ] + values[ 11 ] * other.values[ 14 ];
-		retVal.values[ 11 ] = values[ 8 ] * other.values[ 3 ] + values[ 9 ] * other.values[ 7 ] + values[ 10 ] * other.values[ 11 ] + values[ 11 ] * other.values[ 15 ];
-
-		retVal.values[ 12 ] = values[ 12 ] * other.values[ 0 ] + values[ 13 ] * other.values[ 4 ] + values[ 14 ] * other.values[ 8 ] + values[ 15 ] * other.values[ 12 ];
-		retVal.values[ 13 ] = values[ 12 ] * other.values[ 1 ] + values[ 13 ] * other.values[ 5 ] + values[ 14 ] * other.values[ 9 ] + values[ 15 ] * other.values[ 13 ];
-		retVal.values[ 14 ] = values[ 12 ] * other.values[ 2 ] + values[ 13 ] * other.values[ 6 ] + values[ 14 ] * other.values[ 10 ] + values[ 15 ] * other.values[ 14 ];
-		retVal.values[ 15 ] = values[ 12 ] * other.values[ 3 ] + values[ 13 ] * other.values[ 7 ] + values[ 14 ] * other.values[ 11 ] + values[ 15 ] * other.values[ 15 ];
 
 		return retVal;
 	}

@@ -9,30 +9,34 @@
 
 namespace Potion
 {
+	class GameObject;
+
+	// TODO: Should use matrices instead of constructing matrix from euler and vector
+	// Maybe use Quaternions?
 	class Transform
 	{
 
 	public:
-		Transform();
+		Transform( GameObject* gameObject = nullptr );
 
 		void Translate( Vector3& pos );
 		void Rotate( Vector3& rot );
 
 		void SetPosition( Vector3& pos );
 		Vector3 GetPosition() const;
-		Vector3 GetWorldPosition() const;
+		//Vector3 GetWorldPosition() const;
 
 		void SetRotation( const Vector3& rot );
 		Vector3 GetRotation() const;
-		Vector3 GetWorldRotation() const;
+		//Vector3 GetWorldRotation() const;
 
 		void SetScale( Vector3& scale );
 		Vector3 GetScale() const;
-		Vector3 GetWorldScale() const;
+		//Vector3 GetWorldScale() const;
 
 		void LookAt( Vector3 target );
 
-		Matrix GetLocalToWorldMatrix();
+		Matrix* GetLocalToWorldMatrix();
 
 		Vector3 GetForward();
 
@@ -51,19 +55,23 @@ namespace Potion
 		void SetParent( Transform* parent );
 		Transform* GetParent();
 
+		GameObject* GetGameObject();
+
 	private:
 		void RecalculateMatrix();
 
-		Matrix GetWorldRotationMatrix();
+		Matrix GetRotationMatrix();
 
-		std::vector< Transform* > m_children;
-		Transform* m_parent;
+		std::vector< Transform* > children;
+		Transform* parent;
 
-		Matrix m_matrix;
+		GameObject* gameObject;
 
-		Vector3 m_position;
-		Vector3 m_rotation;
-		Vector3 m_scale;
+		Matrix matrix;
+
+		Vector3 position;
+		Vector3 rotation;
+		Vector3 scale;
 
 	};
 }

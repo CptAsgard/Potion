@@ -29,13 +29,13 @@ namespace Potion
 		void SetDirectional( bool flag );
 
 	private:
-		Color m_color;
+		Color color;
 
-		float m_intensity;
-		float m_attenuation;
-		float m_coneAngle;
+		float intensity;
+		float attenuation;
+		float coneAngle;
 
-		bool m_isDirectional;
+		bool isDirectional;
 
 	};
 

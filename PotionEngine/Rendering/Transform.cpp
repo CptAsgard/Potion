@@ -1,162 +1,170 @@
 #include "Transform.hpp"
-#include "..\Util.hpp"
+#include "..\Utils\Defines.hpp"
 
 #include <math.h>
 #include <cfloat>
 
 namespace Potion
 {
-	Transform::Transform()
+	Transform::Transform( GameObject* gameObject )
 	{
 		SetPosition( Vector3( 0, 0, 0 ) );
 		SetRotation( Vector3( 0, 0, 0 ) );
 		SetScale( Vector3( 1, 1, 1 ) );
+
+		this->gameObject = gameObject;
 	}
 
 	void Transform::Translate( Vector3 & pos )
 	{
-		pos = GetWorldRotationMatrix().Translate( pos );
+		pos = GetRotationMatrix().TransformDirectionVector( pos );
 
-		m_position += pos;
+		this->position += pos;
 	}
 
 	void Transform::Rotate( Vector3 & rot )
 	{
-		m_rotation += rot;
+		this->rotation += rot;
 	}
 
 	void Transform::SetPosition( Vector3 & pos )
 	{
-		m_position = pos;
+		this->position = pos;
 	}
 
 	Vector3 Transform::GetPosition() const
 	{
-		return m_position;
+		return this->position;
 	}
 
-	Vector3 Transform::GetWorldPosition() const
-	{
-		if( m_parent )
-			return m_parent->GetWorldPosition() + m_position;
-		else
-			return m_position;
-	}
+	//Vector3 Transform::GetPosition() const
+	//{
+	//	if( m_parent )
+	//		return m_parent->GetPosition() + m_position;
+	//	else
+	//		return m_position;
+	//}
 
 	void Transform::SetRotation( const Vector3 & rot )
 	{
-		m_rotation = rot;
+		this->rotation = rot;
 	}
 
 	Vector3 Transform::GetRotation() const
 	{
-		return m_rotation;
+		return this->rotation;
 	}
 
-	Vector3 Transform::GetWorldRotation() const
-	{
-		if( m_parent )
-			return m_parent->GetWorldRotation() + m_rotation;
-		else
-			return m_rotation;
-	}
+	//Vector3 Transform::GetRotation() const
+	//{
+	//	if( m_parent )
+	//		return m_parent->GetRotation() + m_rotation;
+	//	else
+	//		return m_rotation;
+	//}
 
 	void Transform::SetScale( Vector3 & scale )
 	{
-		m_scale = scale;
+		this->scale = scale;
 	}
 
 	Vector3 Transform::GetScale() const
 	{
-		return m_scale;
+		return this->scale;
 	}
 
-	Vector3 Transform::GetWorldScale() const
-	{
-		if( m_parent )
-			return m_parent->GetWorldScale() + m_scale;
-		else
-			return m_scale;
-	}
+	//Vector3 Transform::GetScale() const
+	//{
+	//	if( m_parent )
+	//		return m_parent->GetScale() + m_scale;
+	//	else
+	//		return m_scale;
+	//}
 
 	void Transform::LookAt( Vector3 target )
 	{
-		Vector3 lookDir = ( target - GetWorldPosition() ).Normalized();
+		Vector3 lookDir = ( target - GetPosition() ).Normalized();
 
 		float lookLengthOnXZ = sqrtf( lookDir.Z*lookDir.Z + lookDir.X*lookDir.X );
 		float m_rotationX = -RadToDeg( atan2f( lookDir.Y, lookLengthOnXZ ) );
 		float m_rotationY = RadToDeg( atan2f( lookDir.X, lookDir.Z ) );
 
-		SetRotation( Vector3( m_rotationX, m_rotationY, GetWorldRotation().Z ) );
+		SetRotation( Vector3( m_rotationX, m_rotationY, GetRotation().Z ) );
 
 		RecalculateMatrix();
 	}
 
-	Matrix Transform::GetLocalToWorldMatrix()
+	Matrix* Transform::GetLocalToWorldMatrix()
 	{
 		RecalculateMatrix();
-		return m_matrix;
+		return &matrix;
 	}
 
 	Vector3 Transform::GetForward()
 	{
-		return GetWorldRotationMatrix().Translate( Vector3( 0, 0, 1 ) );
+		return GetRotationMatrix().TransformDirectionVector( Vector3( 0, 0, 1 ) );
 	}
 
 	void Transform::RecalculateMatrix()
 	{
-		m_matrix = Matrix::CreateTranslation( GetWorldPosition() ) * GetWorldRotationMatrix() * Matrix::CreateScale( GetWorldScale() );
+		matrix = Matrix::CreateTranslation( GetPosition() ) * GetRotationMatrix() * Matrix::CreateScale( GetScale() );
 	}
 
-	Matrix Transform::GetWorldRotationMatrix()
+	Matrix Transform::GetRotationMatrix()
 	{
-		Vector3 worldRotation = GetWorldRotation();
-		return ( Matrix::CreateRotationZ( worldRotation.Z ) * Matrix::CreateRotationY( worldRotation.Y ) * Matrix::CreateRotationX( worldRotation.X ) );
+		Vector3 worldRotation = GetRotation();
+		return ( Matrix::CreateRotateZ( worldRotation.Z ) * Matrix::CreateRotateY( worldRotation.Y ) * Matrix::CreateRotateX( worldRotation.X ) );
 	}
 
 	void Transform::AddChild( Transform * obj )
 	{
-		m_children.push_back( obj );
+		children.push_back( obj );
 	}
 
 	void Transform::RemoveChild( Transform * obj )
 	{
-		if( m_children.size() < 1 )
+		if( children.size() < 1 )
 			return;
 
-		auto it = std::remove( m_children.begin(), m_children.end(), obj );
+		auto it = std::remove( children.begin(), children.end(), obj );
 
-		if( it != m_children.end() )
-			m_children.erase( it, m_children.end() );
+		if( it != children.end() )
+			children.erase( it, children.end() );
 	}
 
 	Transform * Transform::GetChild( int index )
 	{
-		return m_children[ index ];
+		return children[ index ];
 	}
 
 	unsigned int Transform::GetChildCount() const
 	{
-		return m_children.size();
+		return children.size();
 	}
 
 	void Transform::SetParent( Transform * newParent )
 	{
-		if( m_parent )
-			m_parent->RemoveChild( this );
+		if( parent )
+			parent->RemoveChild( this );
 
 		if( newParent )
 			newParent->AddChild( this );
 
-		SetPosition( GetWorldPosition() - newParent->GetWorldPosition() );
-		SetRotation( GetWorldRotation() - newParent->GetWorldRotation() );
-		SetScale( GetWorldScale() - newParent->GetWorldScale() );
+		//SetPosition( GetPosition() - newParent->GetPosition() );
+		////SetRotation( GetRotation() - newParent->GetRotation() );
+		////SetScale( GetScale() - newParent->GetScale() );
 
-		m_parent = newParent;
+		//Matrix parentMatrixInv = newParent->GetLocalToWorldMatrix().Inverted();
+
+		parent = newParent;
 	}
 
 	Transform * Transform::GetParent()
 	{
-		return m_parent;
+		return this->parent;
+	}
+	GameObject * Transform::GetGameObject()
+	{
+		return this->gameObject;
 	}
 }

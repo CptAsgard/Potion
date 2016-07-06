@@ -2,51 +2,56 @@
 
 namespace Potion
 {
-	GameObject::GameObject()
-	{ }
+	GameObject::GameObject() : transform( Transform( this ) )
+	{}
+
+	GameObject::~GameObject()
+	{
+		delete model;
+	}
 
 	void GameObject::SetActive( bool active )
 	{
-		this->m_isActive = active;
+		this->isActive = active;
 	}
 
 	bool GameObject::IsActive() const
 	{
-		return m_isActive;
+		return isActive;
 	}
 
-	GameObjectID GameObject::GetID() const
+	ID GameObject::GetID() const
 	{
-		return m_id;
+		return id;
 	}
 
-	void GameObject::SetID( GameObjectID id )
+	void GameObject::SetID( ID id )
 	{
-		this->m_id = id;
+		this->id = id;
 	}
 
 	Transform& GameObject::GetTransform()
 	{
-		return m_transform;
+		return transform;
 	}
 
-	void GameObject::SetMesh( Mesh * mesh )
+	void GameObject::SetModel( Model * model )
 	{
-		this->m_mesh.reset( mesh );
+		this->model = model;
 	}
 
-	Mesh * GameObject::GetMesh()
+	Model * GameObject::GetModel()
 	{
-		return m_mesh.get();
+		return model;
 	}
 
-	void GameObject::SetLayer( int layer )
+	void GameObject::SetLayer( uint32_t layer )
 	{
-		this->m_layer = layer;
+		this->layer = layer;
 	}
 
-	int GameObject::GetLayer() const
+	uint32_t GameObject::GetLayer() const
 	{
-		return m_layer;
+		return layer;
 	}
 }

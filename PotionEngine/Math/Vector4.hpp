@@ -12,11 +12,13 @@ namespace Potion
 		Vector4( float values );
 		Vector4( float x, float y, float z, float w );
 
-		float Length() const;
+		float Magnitude() const;
+		float SquareMagnitude() const;
+
 		Vector4 Normalized() const;
 
 		float Distance( const Vector4& other ) const;
-		Vector4 Cross( const Vector4& other ) const;
+
 		float Dot( const Vector4& other ) const;
 
 		Vector4 operator- ( const Vector4& other ) const;

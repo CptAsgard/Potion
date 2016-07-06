@@ -1,79 +1,89 @@
 #include "Texture.hpp"
 
-#include <iostream>
-#include <vector>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 
-#include "..\Libraries\lodepng.h"
+using namespace Potion;
 
-namespace Potion
+Texture::Texture( const std::string& filename )
 {
-	Texture::Texture() :
-		Handle( -1 ),
-		width( 0 ),
-		height( 0 )
+	GLubyte* data = stbi_load( filename.c_str(), &width, &height, &channels, 4 );
+
+	if( data == nullptr )
 	{
-		glGenTextures( 1, &this->Handle );
-		BindGL();
+		LOG( "Image %s could not be loaded!", filename.c_str() );
 	}
-
-	Texture::Texture( std::string path ) :
-		Handle( -1 ),
-		width( 0 ),
-		height( 0 )
+	else
 	{
-		glGenTextures( 1, &this->Handle );
-		LoadFromFile( path );
-		BindGL();
+		CreateGLTextureWithData( data, true );
+		stbi_image_free( data );
 	}
+}
 
-	Texture::~Texture()
-	{
-		Clear();
-	}
+Texture::Texture( int width, int height ) : textureID( 0 ), width( width ), height( height ) {}
 
-	bool Texture::LoadFromFile( std::string path )
-	{
-		unsigned error = lodepng::decode( this->rawImg, this->width, this->height, path );
+Texture::~Texture()
+{
+	if( textureID )
+		glDeleteTextures( 1, &textureID );
+}
 
-		if( error != 0 ) {
-			std::cout << "decoder error " << error << ": " << lodepng_error_text( error ) << std::endl;
-			return false;
-		}
+void Texture::CreateGLTextureWithData( GLubyte* data, bool genMipMaps )
+{
+	Initialize( genMipMaps );
 
-		Apply();
+	glTexImage2D(
+		GL_TEXTURE_2D,						// What (target)
+		0,									// Mip-map level
+		GL_RGBA,		                    // Internal format
+		width,								// Width
+		height,							// Height
+		0,									// Border
+		GL_RGBA,							// Format (how to use)
+		GL_UNSIGNED_BYTE,					// Type   (how to intepret)
+		data );								// Data
+	GL_GET_ERROR();
 
-		return true;
-	}
+	Finalize( genMipMaps );
+}
 
-	void Texture::BindGL()
-	{
-		glBindTexture( GL_TEXTURE_2D, this->Handle );
+void Texture::SetActive( int index ) const
+{
+	glActiveTexture( GL_TEXTURE0 + index );
+	glBindTexture( GL_TEXTURE_2D, GetTexture() );
+}
 
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+void Texture::Initialize( bool genMipMaps )
+{
+	if( textureID )
+		glDeleteTextures( 1, &textureID );
 
-		glBindTexture( GL_TEXTURE_2D, 0 );
-	}
+	glGenTextures( 1, &textureID );											// Gen    
+	GL_GET_ERROR();
 
-	void Texture::Apply()
-	{
-		glBindTexture( GL_TEXTURE_2D, this->Handle );
+	glBindTexture( GL_TEXTURE_2D, textureID );                                 // Bind
+	GL_GET_ERROR();
+}
 
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, &this->rawImg[ 0 ] );
+void Texture::Finalize( bool genMipMaps )
+{
+	if( genMipMaps )
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST );    // Minmization
+	else
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );                   // Minmization
+	GL_GET_ERROR();
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );                       // Magnification
+	GL_GET_ERROR();
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+
+	GL_GET_ERROR();
+
+	if( genMipMaps )
 		glGenerateMipmap( GL_TEXTURE_2D );
 
-		glBindTexture( GL_TEXTURE_2D, 0 );
-	}
-
-	void Texture::Use()
-	{
-		glBindTexture( GL_TEXTURE_2D, this->Handle );
-	}
-
-	void Texture::Clear()
-	{
-		glDeleteTextures( 1, &this->Handle );
-	}
+	glBindTexture( GL_TEXTURE_2D, 0 );
+	GL_GET_ERROR();
 }

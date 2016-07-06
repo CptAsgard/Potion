@@ -1,25 +1,23 @@
-#ifndef _GameObject_H
-#define _GameObject_H
+#ifndef _GAMEOBJECT_H
+#define _GAMEOBJECT_H
 
 #include <memory>
 #include <string>
-#include <unordered_map>
+
+#ifdef _DEBUG
+#include <iostream>
+#endif
+
+#include "..\Rendering\Transform.hpp"
+#include "..\Rendering\Model.hpp"
 
 #include "..\Events\MessageBus.hpp"
 
-#include "..\Rendering\Transform.hpp"
-#include "..\Rendering\Mesh.hpp"
+#include "..\Utils\Utils.hpp"
 
-#include "..\Util.hpp"
-
-
-/**
- * TODO:
- * http://www.tomdalling.com/blog/modern-opengl/08-even-more-lighting-directional-lights-spotlights-multiple-lights/
- */
 namespace Potion
 {
-	using GameObjectID = uint32_t;
+	class SceneManager;
 
 	/**
 	 * GameObject is the base class for anything that exists in the scene.
@@ -30,35 +28,37 @@ namespace Potion
 	{
 	public:
 		GameObject();
-		virtual ~GameObject() {}
+		virtual ~GameObject();
+
+		virtual void Initialize( SceneManager *game ) { }
+		virtual void Update( SceneManager *game, float deltaTime ) { }
 
 		void SetActive( bool active );
 		bool IsActive() const;
 
-		GameObjectID GetID() const;
-		void SetID( GameObjectID id );
+		ID GetID() const;
+		void SetID( ID id );
 
 		Transform& GetTransform();
 
-		// takes ownership
-		void SetMesh( Mesh* mesh );
-		Mesh* GetMesh();
+		void SetModel( Model* model );
+		Model* GetModel();
 
-		void SetLayer( int layer );
-		int GetLayer() const;
+		void SetLayer( uint32_t layer );
+		uint32_t GetLayer() const;
 
 	private:
-		Transform m_transform;
+		Transform transform;
 
-		GameObjectID m_id;
+		ID id;
 
-		bool m_isActive;
+		bool isActive;
 
-		std::unique_ptr<Mesh> m_mesh;
+		Model* model;
 
 		// Used to differentiate GOs per layer
 		// For example used by the Camera to draw GOs selectively
-		int m_layer;
+		uint32_t layer;
 	};
 
 	using GameObjectPtr = std::unique_ptr<GameObject>;
@@ -77,4 +77,4 @@ namespace Potion
 	};
 }
 
-#endif // _GameObject_H
+#endif // _GAMEOBJECT_H

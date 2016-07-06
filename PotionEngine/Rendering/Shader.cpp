@@ -1,180 +1,565 @@
 #include "Shader.hpp"
 
-#include <fstream>
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
-namespace Potion
+#include "..\Utils\Utils.hpp"
+#include "..\OpenGL.hpp"
+
+#include "Texture.hpp"
+#include "Color.hpp"
+
+#include <glad\glad.h>
+
+using namespace Potion;
+
+////////////////////////////////////////////////////////////////////////////////
+// Compile shader and report success or failure
+////////////////////////////////////////////////////////////////////////////////
+bool CompileShader( GLuint* shader, GLenum type, const GLchar* source )
+{
+	GLint status;
+
+	if( !source )
+	{
+		LOG( "Failed to load shader %s \n", source );
+		return false;
+	}
+
+	*shader = glCreateShader( type );
+	glShaderSource( *shader, 1, &source, nullptr );
+	GL_GET_ERROR();
+	glCompileShader( *shader );
+
+#if defined(DEBUG)
+	GLint logLength = 0;
+	glGetShaderiv( *shader, GL_INFO_LOG_LENGTH, &logLength );
+	if( logLength > 1 )
+	{
+		GLchar *log = static_cast<GLchar *>( malloc( logLength ) );
+		glGetShaderInfoLog( *shader, logLength, &logLength, log );
+		LOG( "Shader compile log:\n%s", log );
+		free( log );
+	}
+#endif
+
+	glGetShaderiv( *shader, GL_COMPILE_STATUS, &status );
+	if( status == 0 )
+	{
+		glDeleteShader( *shader );
+		return false;
+	}
+
+	GL_GET_ERROR();
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Link Program
+////////////////////////////////////////////////////////////////////////////////
+bool LinkProgram( GLuint prog )
+{
+	GLint status;
+
+	glLinkProgram( prog );
+
+#if defined(DEBUG)
+	GLint logLength = 0;
+	glGetProgramiv( prog, GL_INFO_LOG_LENGTH, &logLength );
+	if( logLength > 1 )
+	{
+		GLchar *log = static_cast<GLchar *>( malloc( logLength ) );
+		glGetProgramInfoLog( prog, logLength, &logLength, log );
+		LOG( "Program link log:\n%s", log );
+		free( log );
+	}
+#endif
+
+	glGetProgramiv( prog, GL_LINK_STATUS, &status );
+	if( status == 0 )
+		return false;
+
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Validate program
+////////////////////////////////////////////////////////////////////////////////
+bool ValidateProgram( GLuint prog )
+{
+	GLint logLength = 0;
+	GLint status = 0;
+
+	glValidateProgram( prog );
+	glGetProgramiv( prog, GL_INFO_LOG_LENGTH, &logLength );
+	if( logLength > 0 )
+	{
+		GLchar *log = static_cast<GLchar *>( malloc( logLength ) );
+		glGetProgramInfoLog( prog, logLength, &logLength, log );
+		free( log );
+	}
+
+	logLength = 0;
+	glGetProgramiv( prog, GL_VALIDATE_STATUS, &status );
+	if( status == 0 )
+	{
+		return false;
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//                              ShaderParameter
+//
+////////////////////////////////////////////////////////////////////////////////
+
+void ShaderParameter::SetValue( float val )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_FLOAT );
+	glUniform1f( _location, val );
+	GL_GET_ERROR();
+}
+
+
+void ShaderParameter::SetValue( int val )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_INT );
+	glUniform1i( _location, val );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( bool val )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_BOOL );
+	glUniform1i( _location, val );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( const Vector2& vec )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_FLOAT_VEC2 );
+	glUniform2fv( _location, 1, (GLfloat*) &vec );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( const Vector3& vec )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_FLOAT_VEC3 );
+	glUniform3fv( _location, 1, (GLfloat*) &vec );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( const Vector4& vec )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_FLOAT_VEC4 );
+	glUniform4fv( _location, 1, (GLfloat*) &vec );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( const Color& color )
+{
+	Vector4 c = { color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f };
+	if( _type == GL_FLOAT_VEC4 )
+		glUniform4fv( _location, 1, &c.X );
+	else if( _type == GL_FLOAT_VEC3 )
+		glUniform3fv( _location, 1, &c.X );
+	GL_GET_ERROR();
+}
+
+void ShaderParameter::SetValue( const Matrix& mtx, bool transpose )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_FLOAT_MAT4 );
+	glUniformMatrix4fv( _location, 1, transpose, mtx.values );
+	GL_GET_ERROR();
+}
+
+
+void ShaderParameter::SetValue( const Texture &texture )
+{
+	if( !IsValid() )
+		return;
+
+	ASSERT( _type == GL_SAMPLER_2D );
+
+	//// Use texture with index sampler. GL_TEXTURE1 = GL_TEXTURE10+1 is always true
+	//glActiveTexture( GL_TEXTURE0 + _sampler );
+	//GL_GET_ERROR();
+	//// Work with this texture
+	//glBindTexture( GL_TEXTURE_2D, texture.GetTexture() );
+	//GL_GET_ERROR();
+
+	texture.SetActive( _sampler );
+	GL_GET_ERROR();
+
+	// Set the sampler
+	glUniform1i( _location, _sampler );
+	GL_GET_ERROR();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//                          ShaderAttribute
+//
+////////////////////////////////////////////////////////////////////////////////
+
+void ShaderAttribute::SetAttributePointer( GLint size,
+	GLenum type,
+	GLboolean normalized,
+	GLsizei stride,
+	const GLvoid *pointer )
+{
+	if( !IsValid() )
+		return;
+
+	glVertexAttribPointer(
+		_location,           // attribute
+		size,               // number of elements per vertex element
+		type,               // the type of each element
+		normalized,         // take our values as-is or normalize
+		stride,             // no extra data between each position
+		pointer             // offset of first element
+		);
+	GL_GET_ERROR();
+
+	glEnableVertexAttribArray( _location );
+	GL_GET_ERROR();
+}
+
+void ShaderAttribute::DisableAttributePointer()
+{
+	if( !IsValid() )
+		return;
+
+	glDisableVertexAttribArray( _location );
+	GL_GET_ERROR();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//                                  Shader
+//
+////////////////////////////////////////////////////////////////////////////////
+
+Shader::Shader( const std::string& vertexFilename, const std::string& fragmentFilename )
+	: Shader( vertexFilename, "", fragmentFilename )
+{}
+
+Shader::Shader( const std::string& vertexFilename,
+	const std::string& geometryFilename,
+	const std::string& fragmentFilename )
+	: _program( 0 )
+{
+	//// TEMP
+	std::string sDrive( 255, '\0' );
+	std::string sDirectory( 255, '\0' );
+	std::string sFileName( 255, '\0' );
+	std::string sExtension( 255, '\0' );
+
+	_splitpath_s( &vertexFilename.c_str()[ 0 ], &sDrive[ 0 ], sDrive.size(), &sDirectory[ 0 ], sDirectory.size(), &sFileName[ 0 ], sFileName.size(), &sExtension[ 0 ], sExtension.size() );
+
+	this->_name = sFileName;
+	//// TEMP
+
+	bool success = Load( vertexFilename, fragmentFilename, geometryFilename );
+	if( !success )
+	{
+		LOG( "Unable to load shader." );
+	}
+	else
+	{
+		LoadParameters();
+	}
+}
+
+Shader::~Shader()
+{
+	if( _program > 0 )
+	{
+		glDeleteProgram( _program );
+		_program = 0;
+		GL_GET_ERROR();
+	}
+}
+
+GLuint Shader::GetProgram() const
+{
+	return _program;
+}
+
+void Potion::Shader::Deactivate()
+{
+	for( auto& a : _attributes )
+		a.second->DisableAttributePointer();
+}
+
+void Shader::LoadParameters()
+{
+	/// The shader should invalidate when reloading a new shader file
+	/// a some information can be old
+	for( auto& itr : _parameters )
+		itr.second->Invalidate();
+
+	// Get the number of uniforms and resize the parameters collection accordingly
+	GLint numActiveUniforms = 0;
+	glGetProgramiv( _program, GL_ACTIVE_UNIFORMS, &numActiveUniforms );
+	//parameters.resize(numActiveUniforms);
+
+	// Get the maximum name length
+	GLint maxUniformNameLength = 0;
+	glGetProgramiv( _program, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformNameLength );
+	std::vector<GLchar> uniformNameData( maxUniformNameLength );
+
+	// Go over all the uniforms
+	int samplerCount = 0;
+	for( int uniform = 0; uniform < numActiveUniforms; uniform++ )
+	{
+		GLint arraySize = 0;
+		GLenum type = 0;
+		GLsizei actualLength = 0;
+		glGetActiveUniform(
+			_program,
+			uniform,
+			maxUniformNameLength,
+			&actualLength,
+			&arraySize,
+			&type,
+			&uniformNameData[ 0 ] );
+		std::string name( &uniformNameData[ 0 ], actualLength );
+		GLint location = glGetUniformLocation( _program, name.c_str() );
+
+		auto itr = _parameters.find( name );
+		if( itr != _parameters.end() )
+		{
+			if( type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE )
+				itr->second->Reset( this, name, type, location, samplerCount++ );
+			else
+				itr->second->Reset( this, name, type, location );
+		}
+		else
+		{
+			ShaderParameter* param = nullptr;
+			if( type == GL_SAMPLER_2D || type == GL_SAMPLER_CUBE )
+				param = new ShaderParameter( this, name, type, location, samplerCount++ );
+			else
+				param = new ShaderParameter( this, name, type, location );
+			_parameters[ name ] = std::unique_ptr<ShaderParameter>( param );
+		}
+	}
+
+
+	GLint numActiveAttribs = 0;
+	glGetProgramiv( _program, GL_ACTIVE_ATTRIBUTES, &numActiveAttribs );
+
+
+	GLint maxAttribNameLength = 0;
+	glGetProgramiv( _program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxAttribNameLength );
+	std::vector<GLchar> attribNameData( maxAttribNameLength );
+
+
+	for( int attrib = 0; attrib < numActiveAttribs; ++attrib )
+	{
+		GLint arraySize = 0;
+		GLenum type = 0;
+		GLsizei actualLength = 0;
+		glGetActiveAttrib( _program,
+			attrib,
+			attribNameData.size(),
+			&actualLength,
+			&arraySize,
+			&type,
+			&attribNameData[ 0 ] );
+		std::string name( static_cast<char*>( &attribNameData[ 0 ] ) );
+		GLint location = glGetAttribLocation( _program, name.c_str() );
+
+		auto itr = _attributes.find( name );
+		if( itr != _attributes.end() )
+		{
+			itr->second->Reset( this, name, type, location );
+		}
+		else
+		{
+			ShaderAttribute* attribute = new ShaderAttribute( this, name, type, location );
+			_attributes[ name ] = std::unique_ptr<ShaderAttribute>( attribute );
+		}
+	}
+}
+
+ShaderParameter* Shader::GetParameter( const std::string& name )
+{
+	// Try to find param
+	auto itr = _parameters.find( name );
+	if( itr != _parameters.end() )
+		return itr->second.get();
+
+	// Create and return a non-valid param that is stored in collection
+	// in case it becomes valid after a reload
+	ShaderParameter* param = new ShaderParameter();
+	_parameters[ name ] = std::unique_ptr<ShaderParameter>( param );
+	return param;
+}
+
+
+ShaderAttribute* Shader::GetAttribute( const std::string& name )
+{
+	// Try to find param
+	auto itr = _attributes.find( name );
+	if( itr != _attributes.end() )
+		return itr->second.get();
+
+	// Create and return a non-valid param that is stored in collection
+	// in case it becomes valid after a reload
+	ShaderAttribute* attrib = new ShaderAttribute();
+	_attributes[ name ] = std::unique_ptr<ShaderAttribute>( attrib );
+	return attrib;
+}
+
+void Shader::Activate()
+{
+	glUseProgram( GetProgram() );
+	GL_GET_ERROR();
+}
+
+bool Shader::Validate()
+{
+#if defined(DEBUG)
+	if( !ValidateProgram( _program ) )
+	{
+		LOG( "Failed to validate program: %d", _program );
+		GL_GET_ERROR();
+		return false;
+	}
+#endif
+	return true;
+}
+
+bool Shader::Load( const std::string& vertexFilename,
+	const std::string& fragmentFilename,
+	const std::string& geometryFilename )
 {
 
-	Shader::Shader() : programHandle( -1 )
-	{}
+	std::string vertShaderSource = ReadFile( vertexFilename );
+	std::string geomShaderSource = "";
+	if( geometryFilename.length() > 0 )
+		geomShaderSource = ReadFile( geometryFilename );
+	std::string fragShaderSource = ReadFile( fragmentFilename );
 
-	Shader::~Shader()
+	return LoadSource( vertShaderSource, geomShaderSource, fragShaderSource );
+}
+
+bool Shader::LoadSource( const std::string& vertexShader,
+	const std::string& geometryShader,
+	const std::string& fragmentShader )
+{
+	GLuint vertShader = 0;
+	GLuint fragShader = 0;
+	GLuint geomShader = 0;
+
+	_program = glCreateProgram();
+
+	// Temp result
+	GLboolean res;
+
+	res = CompileShader( &vertShader, GL_VERTEX_SHADER, vertexShader.c_str() );
+	if( !res )
 	{
-		Clean();
+		LOG( "Shader::Load() Failed to compile vertex shader" );
+		return false;
 	}
 
-	void Shader::Clean()
+	// Geometry shader is optional
+	if( geometryShader.length() > 0 )
 	{
-		for( auto handle : this->attached ) {
-			glDeleteShader( handle );
-		}
-
-		glDeleteProgram( this->programHandle );
-
-		this->programHandle = -1;
-		this->attached.clear();
-	}
-
-	bool Shader::Attach( std::string file, GLint mode )
-	{
-		std::ifstream infile;
-		infile.open( file, std::ifstream::binary );
-
-		if( !infile.is_open() ) {
-			std::cout << "Couldn't open shader file!\n";
+		res = CompileShader( &geomShader, GL_GEOMETRY_SHADER, geometryShader.c_str() );
+		if( !res )
+		{
+			LOG( "Shader::Load() Failed to compile geometry shader" );
 			return false;
 		}
-
-		infile.seekg( 0, std::ios::end );
-		size_t fileSize = (size_t) infile.tellg();
-
-		std::vector<char> data( fileSize + 1 ); // used to store text data
-		infile.seekg( 0, std::ios::beg );
-
-		infile.read( &data[ 0 ], fileSize );
-		data[ fileSize ] = 0;
-
-		//Cast to a const char for the gl function
-		const char* fileDataConst = (const char*) &data[ 0 ];
-
-		bool success = AttachRaw( fileDataConst, mode );
-
-		infile.close();
-
-		return success;
 	}
 
-	bool Shader::AttachRaw( const char* data, GLint mode )
+	// Create and compile fragment shader
+	res = CompileShader( &fragShader, GL_FRAGMENT_SHADER, fragmentShader.c_str() );
+	if( !res )
 	{
-		if( this->programHandle == -1 ) {
-			this->programHandle = glCreateProgram();
+		LOG( "Shader::Load() Failed to compile fragment shader" );
+		return false;
+	}
+
+	// Attach vertex shader to program
+	glAttachShader( _program, vertShader );
+
+	// Attach geometry shader to program
+	if( geomShader )
+		glAttachShader( _program, geomShader );
+
+	// Attach fragment shader to program
+	glAttachShader( _program, fragShader );
+
+	// Link program
+	if( !LinkProgram( _program ) )
+	{
+		if( vertShader )
+		{
+			glDeleteShader( vertShader );
+			vertShader = 0;
+		}
+		if( fragShader )
+		{
+			glDeleteShader( fragShader );
+			fragShader = 0;
+		}
+		if( geomShader )
+		{
+			glDeleteShader( geomShader );
+			geomShader = 0;
+		}
+		if( _program )
+		{
+			glDeleteProgram( _program );
+			_program = 0;
 		}
 
-		GLuint handle = glCreateShader( mode );
+		GL_GET_ERROR();
 
-		glShaderSource( handle, 1, &data, NULL );
-		glCompileShader( handle );
+		// We crash here, else the logs will be flooded with repeated
+		// error messages.
+		ASSERT( false );
 
-		GLint success;
-		glGetShaderiv( handle, GL_COMPILE_STATUS, &success );
-		if( success == GL_FALSE ) {
-			GLchar infoLog[ 512 ];
-
-			glGetShaderInfoLog( handle, 512, NULL, infoLog );
-
-			glDeleteShader( handle );
-			std::cout << "ERROR, SHADER COMPILATION FAILED:\n" << infoLog << std::endl;
-
-			return false;
-		}
-
-		glAttachShader( this->programHandle, handle );
-		this->attached.push_back( handle );
-
-		return true;
+		return false;
 	}
 
-	void Shader::Use()
-	{
-		glUseProgram( this->programHandle );
-	}
+	glDeleteShader( vertShader );
+	GL_GET_ERROR();
+	glDeleteShader( geomShader );
+	GL_GET_ERROR();
+	glDeleteShader( fragShader );
+	GL_GET_ERROR();
 
-	bool Shader::Link()
-	{
-		glLinkProgram( this->programHandle );
+	LoadParameters();
 
-		GLint success;
-		glGetProgramiv( this->programHandle, GL_LINK_STATUS, &success );
-
-		if( success == GL_FALSE ) {
-			GLchar infoLog[ 512 ];
-			glGetProgramInfoLog( this->programHandle, 512, NULL, infoLog );
-
-			std::cout << "ERROR, SHADER > LINKING < FAILED:\n" << infoLog << std::endl;
-
-			return false;
-		}
-
-		return true;
-	}
-
-	// Setting floats
-	void Shader::SetUniform( std::string name, float* values, int count )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform1fv( loc, count, values );
-	}
-
-	void Shader::SetUniform( std::string name, const float value )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform1fv( loc, 1, &value );
-	}
-
-	// Setting vectors
-	void Shader::SetUniform( std::string name, Vector2* vectors, int count )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform2fv( loc, count, (GLfloat*) vectors );
-	}
-
-	void Shader::SetUniform( std::string name, const Vector2& vector )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform2fv( loc, 1, (GLfloat*) &vector );
-	}
-
-	void Shader::SetUniform( std::string name, Vector3* vectors, int count )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform3fv( loc, count, (GLfloat*) vectors );
-	}
-
-	void Shader::SetUniform( std::string name, const Vector3& vector )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform3fv( loc, 1, (GLfloat*) &vector );
-	}
-
-	void Shader::SetUniform( std::string name, Vector4* vectors, int count )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform4fv( loc, count, (GLfloat*) vectors );
-	}
-
-	void Shader::SetUniform( std::string name, const Vector4& vector )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform4fv( loc, 1, (GLfloat*) &vector );
-	}
-
-	void Shader::SetUniform( std::string name, const Matrix& matrix )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniformMatrix4fv( loc, 1, true, matrix.values );
-	}
-
-	// Setting integers
-	void Shader::SetUniform( std::string name, int* values, int count )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform1iv( loc, count, values );
-	}
-
-	void Shader::SetUniform( std::string name, const int value )
-	{
-		int loc = glGetUniformLocation( this->programHandle, name.c_str() );
-		glUniform1i( loc, value );
-	}
+	return true;
 }

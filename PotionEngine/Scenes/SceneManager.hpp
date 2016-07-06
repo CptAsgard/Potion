@@ -1,27 +1,28 @@
 #pragma once
-#ifndef _STATEMANAGER_H
-#define _STATEMANAGER_H
 
 #include <iostream>
 #include <vector>
 #include <cstdint>
 
 #include "..\Events\MessageBus.hpp"
+
 #include "..\Rendering\Window.hpp"
+
+#include "..\Systems\SceneGraph.hpp"
 
 namespace Potion
 {
-	class GameState;
+	class Scene;
 
-	class StateManager
+	class SceneManager
 	{
 
 	public:
-		void Init( const std::string& title, int32_t width, int32_t height );
+		void Initialize( const std::string& title, int32_t width, int32_t height );
 		void CleanUp();
 
-		void ChangeState( GameState *state );
-		void PushState( GameState *state );
+		void ChangeState( Scene *state );
+		void PushState( Scene *state );
 		void PopState();
 
 		void HandleEvents();
@@ -31,14 +32,18 @@ namespace Potion
 		bool Running() { return gameIsRunning; }
 		void Quit() { gameIsRunning = false; }
 
-		Window* StateManager::GetWindow();
+		Window* GetWindow();
+
+		SceneGraph* GetSceneGraph();
 
 	private:
-		std::vector<GameState*> states;
+		std::vector<Scene*> states;
 
 		Window* windowPtr;
 
 		MessageBus* messageBus;
+
+		SceneGraph* sceneGraph;
 
 		bool gameIsRunning;
 
@@ -46,4 +51,3 @@ namespace Potion
 
 	};
 }
-#endif // _STATEMANAGER_H

@@ -1,71 +1,75 @@
-#ifndef _MESH_H
-#define _MESH_H
+#pragma once
 
-#include <GL\glew.h>
+#include <vector>
 
-#include "Shader.hpp"
-#include "Texture.hpp"
-#include "Material.hpp"
-
-#include "..\Math\Vector2.hpp"
+#include "..\OpenGL.hpp"
 #include "..\Math\Vector3.hpp"
-#include "..\Math\Matrix.hpp"
+#include "..\Math\Vector2.hpp"
 
 namespace Potion
 {
-	enum PrimitiveType
-	{
-		//SPHERE,
-		//CAPSULE,
-		//CYLINDER,
-		CUBE,
-		//PLANE,
-		//QUAD
-	};
 
-	struct Vertex
+	struct VertexFormat
 	{
-		Vertex() {}
-		Vertex( Vector3 pos, Vector2 uv, Vector3 normal, Vector3 color = Vector3( 1, 0, 1 ) ) : position( pos ), color( color ), normal( normal ), UV( uv ) {}
-
-		Vector3 position;
-		Vector3 color;
-		Vector3 normal;
-		Vector2 UV;
+		Vector3 Position;
+		Vector3 Normal;
+		Vector2 Texture;
 	};
 
 	class Mesh
 	{
-
 	public:
-		Mesh( Material* m = nullptr );
+		/// Create an empty mesh
+		Mesh();
+
+		/// Destroy 
 		~Mesh();
 
-		static Mesh* CreatePrimitive( PrimitiveType type );
+		/// Set the mesh vertices 
+		void SetVertices( std::vector<VertexFormat>&& vertices );
 
-		void ApplyVertices( Vertex* vertices, unsigned int count );
+		/// Set the mesh indices
+		void SetIndices( std::vector<GLushort>&& indices );
 
-		void ApplyIndices( GLuint* indices, unsigned int count );
+		/// Call this method once you have set the vertices and indices
+		/// it will create VBOs that can be rendered. It will also 
+		/// clear the vertices and indices data from the CPU
+		void Apply();
 
-		void SetMaterial( Material* m );
-		Material* GetMaterial();
+		/// Getter for VBO's
+		const GLuint* GetVertexBuffers() const;
 
-		void Mesh::GLDraw( const Matrix& MVP );
+		const GLuint GetVertexArray() const;
 
-	private:
-		void SetGL();
+		/// Determine if this mesh uses VBO's
+		bool HasVertexBuffers() const;
 
-		Material* material;
+		/// Get the nummber of indieces
+		uint GetIndexCount() const;
 
-		GLuint vao;
-		GLuint vbo;
-		GLuint ebo;
+		/// Only valid if the mesh is not ready to be rendered yet
+		std::vector<VertexFormat> GetVertices() const { return vertices; }
 
-		unsigned int vertexCount;
-		unsigned int indicesCount;
+		/// Only valid if the mesh is not ready to be rendered yet
+		std::vector<GLushort>	GetIndices() const { return	indices; }
 
+	protected:
+
+		/// Mesh vertices, stored temporary when loading or creating a mesh
+		std::vector<VertexFormat>    vertices;
+
+		/// Mesh indices, stored temporary when loading or creating a mesh
+		std::vector<GLushort>		indices;
+
+		/// Primitive count
+		uint						indexCount;
+
+		/// Vertex buffers object
+		/// [0] is vertices
+		/// [1] is indices
+		GLuint						vbo[ 2 ];
+
+		GLuint						vao;
 	};
 
 }
-
-#endif // _MESH_H

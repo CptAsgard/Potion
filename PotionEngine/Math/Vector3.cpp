@@ -32,20 +32,25 @@ namespace Potion
 		return sqrtf( ((this->X - other.X) * (this->X - other.X)) + ((this->Y - other.Y) * (this->Y - other.Y)) + ((this->Z - other.Z) * (this->Z - other.Z)) );
 	}
 
-	float Vector3::Length() const
+	float Vector3::Magnitude() const
 	{
-		return sqrtf( powf( X, 2.0 ) + powf( Y, 2.0 ) + powf( Z, 2.0 ) );
+		return sqrtf( SquareMagnitude() );
+	}
+
+	float Vector3::SquareMagnitude() const
+	{
+		return powf( X, 2.0 ) + powf( Y, 2.0 ) + powf( Z, 2.0 );
 	}
 
 	Vector3 Vector3::Normalized() const
 	{
-		return (*this) / Length();
+		return (*this) / Magnitude();
 	}
 
 	Vector3 Vector3::GetRotated( const Vector3 &ang, const Vector3 &orgin ) const
 	{
-		Matrix rotmat = Matrix::CreateRotationZ( ang.X ) * Matrix::CreateRotationY( ang.Z ) * Matrix::CreateRotationX( ang.Y ) * Matrix::CreateTranslation( orgin );
-		return rotmat.Translate( *this );
+		Matrix rotmat = Matrix::CreateRotateZ( ang.X ) * Matrix::CreateRotateY( ang.Z ) * Matrix::CreateRotateX( ang.Y ) * Matrix::CreateTranslation( orgin );
+		return rotmat.TransformDirectionVector( *this );
 	}
 
 	Vector3 Vector3::Cross( const Vector3& other ) const
@@ -150,6 +155,11 @@ namespace Potion
 	bool Vector3::operator!= ( const Vector3& other ) const
 	{
 		return !operator==( other );
+	}
+
+	Vector3 Vector3::Slerp( float fact, const Vector3 & r ) const
+	{
+		return Vector3();
 	}
 
 	const Vector3 operator*( const Vector3& lhs, const Vector3& rhs )

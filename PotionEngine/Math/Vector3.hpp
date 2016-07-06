@@ -13,7 +13,8 @@ namespace Potion
 		Vector3( float x, float y, float z );
 		static Vector3 FromAngles( float pitch, float yaw );
 
-		float Length() const;
+		float Magnitude() const;
+		float SquareMagnitude() const;
 		Vector3 Normalized() const;
 		Vector3 GetRotated( const Vector3 &ang, const Vector3 &orgin ) const;
 
@@ -38,6 +39,8 @@ namespace Potion
 
 		bool operator== ( const Vector3& other ) const;
 		bool operator!= ( const Vector3& other ) const;
+
+		Vector3 Slerp( float fact, const Vector3& r ) const;
 
 		const static Vector3 Zero;
 		const static Vector3 One;

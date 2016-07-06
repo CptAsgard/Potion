@@ -2,20 +2,28 @@
 
 namespace Potion
 {
-	Material::Material() : m_color( Color( 255, 255, 255 ) ), m_specularColor( Color( 255, 255, 255 ) ), m_shininess( 1.f )
-	{
-		if( shader == nullptr ) {
-			shader = new Shader();
+	UniqueID Material::uniqueID;
 
-			shader->Attach( std::string( "../Resources/Shaders/default.frag" ), GL_FRAGMENT_SHADER );
-			shader->Attach( std::string( "../Resources/Shaders/default.vert" ), GL_VERTEX_SHADER );
-			shader->Link();
-		}
+	Material::Material() : 
+		color( Color( 255, 255, 255 ) ), 
+		specularColor( Color( 255, 255, 255 ) ), 
+		shininess( 1.f ),
+		translucency( Potion::TranslucencyType::TT_OPAQUE )
+	{
+		shader = new Shader( "Assets/Basic.vsh", "Assets/Basic.fsh" );
+
+		this->id = Material::uniqueID.GetNext();
 	}
 
 	Material::~Material()
 	{
+		Material::uniqueID.Free( this->id );
 		delete shader;
+
+		for( int i = 0; i < textures.size(); i++ )
+		{
+			delete textures[ i ].tex;
+		}
 	}
 
 	void Material::SetShader( Shader* s )
@@ -28,7 +36,7 @@ namespace Potion
 		std::vector<gltex_t> newTexArr = std::vector<gltex_t>();
 
 		for( auto tex : this->textures ) {
-			GLint uniformLoc = glGetUniformLocation( this->shader->GetProgramHandle(), tex.name.c_str() );
+			GLint uniformLoc = glGetUniformLocation( this->shader->GetProgram(), tex.name.c_str() );
 
 			if( uniformLoc != -1 ) {
 				newTexArr.push_back( tex );
@@ -42,7 +50,7 @@ namespace Potion
 
 	Shader* const Material::GetShader() const
 	{
-		return shader;
+		return this->shader;
 	}
 
 	void Material::SetMainTexture( Texture * t )
@@ -57,10 +65,10 @@ namespace Potion
 			return;
 		}
 
-		GLint uniformLoc = glGetUniformLocation( this->shader->GetProgramHandle(), propertyName );
+		GLint uniformLoc = glGetUniformLocation( this->shader->GetProgram(), propertyName );
 
 		if( uniformLoc == -1 ) {
-			printf( "Couldn't find location of uniform '%s' in current shader!\n", propertyName );
+			printf( "Couldn't find location of uniform '%s' in current shader '%s'!\n", propertyName, this->shader->_name.c_str() );
 			return;
 		}
 
@@ -69,37 +77,67 @@ namespace Potion
 
 	void Material::SetColor( Color col )
 	{
-		this->m_color = col;
+		this->color = col;
 	}
 
 	Color Material::GetColor() const
 	{
-		return this->m_color;
+		return this->color;
 	}
 
 	void Material::SetSpecularColor( const Color & col )
 	{
-		this->m_specularColor = col;
+		this->specularColor = col;
 	}
 
 	Color Material::GetSpecularColor() const
 	{
-		return this->m_specularColor;
+		return this->specularColor;
 	}
 
 	void Material::SetShininess( float shininess )
 	{
-		this->m_shininess = shininess;
+		this->shininess = shininess;
 	}
 
 	float Material::GetShininess() const
 	{
-		return this->m_shininess;
+		return this->shininess;
+	}
+
+	uint16_t Material::GetID() const
+	{
+		return this->id;
+	}
+
+	const std::string & Material::GetName() const
+	{
+		return this->name;
+	}
+
+	void Material::SetName( const std::string & name )
+	{
+		this->name = name;
+	}
+
+	//void Material::SetID( uint16_t id )
+	//{
+	//	m_id = id;
+	//}
+
+	TranslucencyType Material::GetTranslucency() const
+	{
+		return this->translucency;
+	}
+
+	void Material::SetTranslucency( TranslucencyType t )
+	{
+		this->translucency = t;
 	}
 
 	void Material::ActivateForDraw()
 	{
-		shader->Use();
+		GetShader()->Activate();
 		ActivateTextures();
 	}
 
@@ -108,8 +146,7 @@ namespace Potion
 		for( int i = 0; i < textures.size(); i++ ) {
 			auto tex = textures[ i ];
 
-			glActiveTexture( GL_TEXTURE0 + i );
-			glBindTexture( GL_TEXTURE_2D, tex.tex->GetHandle() );
+			tex.tex->SetActive( i );
 			glUniform1i( tex.uniformLoc, i );
 		}
 	}

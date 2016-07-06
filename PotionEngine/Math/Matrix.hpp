@@ -3,56 +3,150 @@
 #define _MATRIX_H
 
 #include "Vector3.hpp"
-#include "Vector2.hpp"
 
 namespace Potion
 {
-	class Matrix
+	struct Matrix
 	{
 	public:
-		static Matrix CreateRotationX( float rotation );
-		static Matrix CreateRotationY( float rotation );
-		static Matrix CreateRotationZ( float rotation );
-		static Matrix CreateScale( float scale );
-		static Matrix CreateScale( float scaleX, float scaleY, float scaleZ );
-		static Matrix CreateScale( const Vector3& scale );
-		static Matrix CreateTranslation( float x, float y, float z );
-		static Matrix CreateTranslation( const Vector3& pos );
-		static Matrix CreateLookAt( float eyex, float eyey, float eyez, float targetx, float targety, float targetz, float upx, float upy, float upz );
-		static Matrix CreateLookAt( const Vector3& eyePos, const Vector3& targetPos, const Vector3& up );
-		static Matrix CreatePerspective( float fovy, float aspect, float zNear, float zFar );
+		union
+		{
+			float mvalues[4][4];
+			float values[16];
+		};
 
-		~Matrix();
+		/// Construct a new matrix from explicit values
+		Matrix(float m00, float m01, float m02, float m03,
+			float m10, float m11, float m12, float m13,
+			float m20, float m21, float m22, float m23,
+			float m30, float m31, float m32, float m33);
+
 		Matrix();
-		Matrix( float m11, float m12, float m13, float m14, float m21, float m22, float m23, float m24, float m31, float m32, float m33, float m34, float m41, float m42, float m43, float m44 );
-		Matrix( float values );
+		Matrix(float value);
 
-		Matrix( const Matrix& other );
-		Matrix( Matrix&& other );
+		/// Transform the given vector by this matrix.
+		///
+		/// @param vec vector that is asssumed to be homogenuos with w=1
+		/// @return Resulting vector is asssumed to be homogenuos with w=1
+		Vector3 operator*(const Vector3& vec) const;
 
-		Matrix& operator= ( const Matrix& rhs );
+		/// Matrix addition
+		///
+		/// @param mat Right side operand
+		Matrix operator+(const Matrix& mat) const;
+
+		/// Matrix substraction
+		///
+		/// @param mat Right side operand
+		Matrix operator-(const Matrix& mat) const;
+
+		/// Matrix multiplication
+		///
+		/// @param mat Right side operand
+		Matrix operator*(const Matrix& mat) const;
+
+		/// Translation bit of the matrix
+		Vector3 GetTranslation() const;
+
+		/// Set the translation of the matrix
+		void SetTranslation(const Vector3& vec);
+
+		/// Get the x orientation axis 
+		Vector3 GetXAxis() const;
+
+		/// Get the y orientation axis 
+		Vector3 GetYAxis() const;
+
+		/// Get the z orientation axis 
+		Vector3 GetZAxis() const;
+
+		/// Get the determinant of this matrix
+		float Determinant() const;
+
+		/// Inverts this matrix
+		void Invert();
+
+		/// Transposes this matrix
+		void Transpose();
+
+		/// Sets the orientation of the matrix to the orthogonal basis vector
+		/// It perfoms no checks on the orthogonality!
+		///
+		/// @param x X orthogonal basis vector
+		/// @param y Y orthogonal basis vector
+		/// @param z Z orthogonal basis vector
+		void SetOrientation(const Vector3& x,
+			const Vector3& y,
+			const Vector3& z);
+
+		/// Set orientation using Euler angles. Broken at current!
+		void SetEulerAxis(float yaw, float pitch, float roll);
+
+		/// Creates a transation matrix
+		///
+		/// @return Translation matrix
+		static Matrix CreateTranslation(float x, float y, float z);
+		static Matrix CreateTranslation(const Vector3& pos);
+
+		static Matrix CreateScale( const Vector3& scale );
+
+		/// Creates a rotation matrix around an arbitrary axis
+		static Matrix CreateRotate(float angle, const Vector3& axis);
+
+		/// Angle in radians
+		static Matrix CreateRotateX(float angle);
+
+		/// Angle in radians
+		static Matrix CreateRotateY(float angle);
+
+		/// Angle in radians
+		static Matrix CreateRotateZ(float angle);
+
+		/// Creates an orthographic projection matrix
+		static Matrix CreateOrtho(float left, float right, float bottom, float top, float nearZ, float farZ);
+
+		/// Creates a frustum projection matrix
+		static Matrix CreateFrustum(float left, float right, float bottom, float top, float nearZ, float farZ);
+
+		/// Creates a perspective projection matrix from camera settings
+		static Matrix CreatePerspective(float fovy, float aspect, float nearZ, float farZ);
+
+		/// Creates a look at matrix, usualy a view matrix  
+		static Matrix CreateLookAt(const Vector3& eye, const Vector3& center, const Vector3& up);
+
+		/// Transfrom just the direction
+		Vector3 TransformDirectionVector(const Vector3& direction) const;
 
 		void DebugPrint() const;
 
-		Vector3 Translate( float x, float y, float z ) const;
-		Vector3 Translate( const Vector3& input ) const;
+		//static Matrix44 CreateScale( float scale );
+		//static Matrix44 CreateScale( float scaleX, float scaleY, float scaleZ );
+		//static Matrix44 CreateScale( const Vector3& scale );
+		//static Matrix44 CreateTranslation( float x, float y, float z );
+		//static Matrix44 CreateTranslation( const Vector3& pos );
+		//static Matrix44 CreateLookAt( float eyex, float eyey, float eyez, float targetx, float targety, float targetz, float upx, float upy, float upz );
+		//static Matrix44 CreateLookAt( const Vector3& eyePos, const Vector3& targetPos, const Vector3& up );
+		//static Matrix44 CreatePerspective( float fovy, float aspect, float zNear, float zFar );
 
-		Vector2 Translate( float x, float y ) const;
-		Vector2 Translate( const Vector2& input ) const;
+		//void operator*=(const Matrix44& other) { *this = *this * other; }
+		//Matrix44& operator= ( const Matrix44& rhs );
 
-		Vector3 GetTranslation() const;
-		Vector3 GetScale() const;
+		//Vector3 Translate( float x, float y, float z ) const;
+		//Vector3 Translate( const Vector3& input ) const;
 
-		Matrix Lerp( const Matrix& other, float timestep );
-		Matrix Inverted();
+		//Vector2 Translate( float x, float y ) const;
+		//Vector2 Translate( const Vector2& input ) const;
 
-		// to switch between column and row type
-		Matrix Mirror();
+		//Vector3 GetTranslation() const;
+		//Vector3 GetScale() const;
 
-		Matrix operator*( const Matrix& other ) const;
-		void operator*=( const Matrix& other ) { *this = *this * other; }
+		//Matrix44 Lerp( const Matrix44& other, float timestep );
+		//Matrix44 Inverted();
 
-		float* values;
+		//// to switch between column and row type
+		//Matrix44 Mirror();
+
+		//float* values;
 	};
 }
 

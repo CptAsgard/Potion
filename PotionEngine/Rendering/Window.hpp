@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-#include <GL/glew.h>
+#include "..\OpenGL.hpp"
 #include <GLFW\glfw3.h>
 
 #include "..\Math\Vector2.hpp"
@@ -66,7 +66,9 @@ namespace Potion
 		 */
 		bool GetKeyUp( int key );
 
-		static Window* m_currentWindow;
+		static Window* currentWindow;
+
+		GLFWwindow* handle;
 
 	private:
 		void SetCallbacks() const;
@@ -78,10 +80,10 @@ namespace Potion
 		static void OnMousePos( GLFWwindow* window, double x, double y );
 		static void OnFocus( GLFWwindow* window, int focus );
 
-		GLFWwindow* m_handle;
 
-		unsigned char m_keysIn[ GLFW_KEY_LAST ];
-		unsigned char m_mouseIn[ GLFW_MOUSE_BUTTON_LAST ];
+
+		unsigned char keysIn[ GLFW_KEY_LAST ];
+		unsigned char mouseIn[ GLFW_MOUSE_BUTTON_LAST ];
 
 	};
 

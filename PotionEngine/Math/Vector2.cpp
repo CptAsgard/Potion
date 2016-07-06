@@ -1,4 +1,5 @@
 #include "Vector2.hpp"
+
 #include <math.h>
 
 namespace Potion
@@ -17,14 +18,19 @@ namespace Potion
 		return sqrtf( ((this->X - other.X) * (this->X - other.X)) + ((this->Y - other.Y) * (this->Y - other.Y)) );
 	}
 
-	float Vector2::Length() const
+	float Vector2::Magnitude() const
 	{
-		return sqrtf( powf( X, 2.0 ) + powf( Y, 2.0 ) );
+		return sqrtf( SquareMagnitude() );
+	}
+
+	float Vector2::SquareMagnitude() const
+	{
+		return powf( X, 2.0 ) + powf( Y, 2.0 );
 	}
 
 	Vector2 Vector2::Normalized() const
 	{
-		return (*this) / Length();
+		return (*this) / Magnitude();
 	}
 
 	float Vector2::Dot( const Vector2& other ) const
